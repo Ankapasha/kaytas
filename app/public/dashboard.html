@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Min Profil – Kaytas</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #fff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 25px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .info-line {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 14px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-blue {
+      background: #1976d2;
+      color: white;
+    }
+
+    .btn-red {
+      background: #e8b3b3;
+      color: #9b2b2b;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Min Profil</h1>
+  <button class="btn-red" id="logoutBtn">Logga ut</button>
+</header>
+
+<main>
+
+  <div id="profileBox">
+    <p>Laddar profil...</p>
+  </div>
+
+  <div class="buttons">
+    <button class="btn-blue" onclick="location.href='/my-listings.html'">Mina annonser</button>
+    <button class="btn-blue" onclick="location.href='/favorites.html'">Favoriter</button>
+    <button class="btn-blue" onclick="location.href='/chat.html'">Chatt</button>
+    <button class="btn-blue" onclick="location.href='/create-listing.html'">Skapa annons</button>
+  </div>
+
+</main>
+
+<script>
+/* Redirect if not logged in */
+function requireLogin() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "/login.html?redirect=/dashboard.html";
+    return false;
+  }
+  return token;
+}
+
+/* Load profile */
+async function loadProfile() {
+  const token = requireLogin();
+  if (!token) return;
+
+  try {
+    const resUser = await fetch("/api/auth/me", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!resUser.ok) {
+      localStorage.removeItem("token");
+      window.location.href = "/login.html";
+      return;
+    }
+
+    const user = await resUser.json();
+
+    const resListings = await fetch("/api/listings/mine", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const myListings = resListings.ok ? await resListings.json() : [];
+
+    const resFavs = await fetch("/api/favorites", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const favorites = resFavs.ok ? await resFavs.json() : [];
+
+    document.getElementById("profileBox").innerHTML = `
+      <div class="section-title">Användarinformation</div>
+      <div class="info-line"><strong>Namn:</strong> ${user.name || ""}</div>
+      <div class="info-line"><strong>E-post:</strong> ${user.email}</div>
+
+      <div class="section-title">Statistik</div>
+      <div class="info-line"><strong>Dina annonser:</strong> ${myListings.length}</div>
+      <div class="info-line"><strong>Dina favoriter:</strong> ${favorites.length}</div>
+    `;
+  } catch (err) {
+    document.getElementById("profileBox").innerHTML = "Kunde inte ladda profil.";
+  }
+}
+
+/* Logout */
+document.getElementById("logoutBtn").onclick = () => {
+  localStorage.removeItem("token");
+  window.location.href = "/";
+};
+
+/* Init */
+loadProfile();
+</script>
+
+</body>
+</html>

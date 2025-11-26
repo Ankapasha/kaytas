@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mina favoriter – Kaytas</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .list-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .fav-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      gap: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      align-items: center;
+    }
+
+    .fav-card img {
+      width: 120px;
+      height: 90px;
+      object-fit: cover;
+      background: #ddd;
+      border-radius: 6px;
+    }
+
+    .fav-info {
+      flex: 1;
+    }
+
+    .fav-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .fav-meta {
+      font-size: 14px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .fav-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .open-btn {
+      background: #e0e0e0;
+    }
+
+    .remove-btn {
+      background: #e8b3b3;
+      color: #9b2b2b;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Mina favoriter</h1>
+
+<div id="favoritesBox" class="list-container">
+  <div class="empty-message">Laddar...</div>
+</div>
+
+<script>
+  async function loadFavorites() {
+    const token = localStorage.getItem("token");
+    const box = document.getElementById("favoritesBox");
+
+    if (!token) {
+      box.innerHTML = '<div class="empty-message">Du måste vara inloggad.</div>';
+      return;
+    }
+
+    const res = await fetch("/api/favorites", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) {
+      box.innerHTML = '<div class="empty-message">Kunde inte hämta favoriter.</div>';
+      return;
+    }
+
+    const favs = await res.json();
+
+    if (!Array.isArray(favs) || favs.length === 0) {
+      box.innerHTML = '<div class="empty-message">Inga favoriter ännu.</div>';
+      return;
+    }
+
+    box.innerHTML = "";
+
+    favs.forEach(item => {
+      const img = (item.images && item.images.length > 0)
+        ? item.images[0]
+        : "";
+
+      const card = document.createElement("div");
+      card.className = "fav-card";
+
+      card.innerHTML = `
+        <img src="${img}" alt="">
+        <div class="fav-info">
+          <p class="fav-title">${item.title}</p>
+          <p class="fav-meta">${item.price} kr – ${item.address || ''}</p>
+        </div>
+        <div class="fav-actions">
+          <button class="open-btn" onclick="openListing('${item._id}')">Öppna</button>
+          <button class="remove-btn" onclick="removeFavorite('${item._id}')">Ta bort</button>
+        </div>
+      `;
+
+      box.appendChild(card);
+    });
+  }
+
+  async function removeFavorite(id) {
+    const token = localStorage.getItem("token");
+    if (!confirm("Vill du ta bort favoriten?")) return;
+
+    const res = await fetch("/api/favorites/" + id, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (res.ok) {
+      loadFavorites();
+    } else {
+      alert("Kunde inte ta bort favorit.");
+    }
+  }
+
+  function openListing(id) {
+    window.location.href = "/listing.html?id=" + id;
+  }
+
+  loadFavorites();
+</script>
+
+</body>
+</html>

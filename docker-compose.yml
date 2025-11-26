@@ -1,0 +1,40 @@
+version: 3.8"
+
+networks:
+  kaytas-net:
+
+services:
+  kaytas-mongo:
+    image: mongo:4.4.9
+    container_name: kaytas-mongo
+    restart: unless-stopped
+    volumes:
+      - ./app/data/mongo:/data/db
+    networks:
+      - kaytas-net
+
+  kaytas-web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: kaytas-web
+    restart: unless-stopped
+    env_file:
+      - ./app/.env
+    expose:
+      - 3000
+    networks:
+      - kaytas-net
+
+  nginx:
+    image: nginx:latest
+    container_name: kaytas-nginx
+    depends_on:
+      - kaytas-web
+    ports:
+      - 5050:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot:/etc/letsencrypt
+    networks:
+      - kaytas-net

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logga in / Registrera – Kaytas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Kaytas</h1>
+  <button id="backHome">Tillbaka</button>
+</header>
+
+<main>
+  <h2>Logga in / Registrera</h2>
+
+  <div style="max-width:400px; margin:auto;">
+
+    <!-- Tabs -->
+    <div id="formTabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+      <button id="loginTab" class="primary">Logga in</button>
+      <button id="registerTab" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer;">Registrera</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="E-post" required>
+      <input type="password" id="loginPassword" placeholder="Lösenord" required>
+      <button type="submit">Logga in</button>
+      <p id="loginMsg" class="notice"></p>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="registerForm" style="display:none;">
+      <input type="text" id="regName" placeholder="Namn" required>
+      <input type="email" id="regEmail" placeholder="E-post" required>
+      <input type="password" id="regPassword" placeholder="Lösenord" required>
+      <button type="submit" style="background:#28a745;">Registrera</button>
+      <p id="registerMsg" class="notice"></p>
+    </form>
+
+  </div>
+</main>
+
+<footer>
+  © 2025 Kaytas
+</footer>
+
+<script>
+
+// Redirect-parameter
+const params = new URLSearchParams(window.location.search);
+const redirectUrl = params.get("redirect") || "/dashboard.html";
+
+// Tabs
+const loginTab = document.getElementById('loginTab');
+const registerTab = document.getElementById('registerTab');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+
+loginTab.onclick = function() {
+  loginForm.style.display = "block";
+  registerForm.style.display = "none";
+};
+
+registerTab.onclick = function() {
+  loginForm.style.display = "none";
+  registerForm.style.display = "block";
+};
+
+document.getElementById('backHome').onclick = function() {
+  window.location.href = '/';
+};
+
+// LOGIN
+loginForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const email = loginEmail.value.trim();
+  const password = loginPassword.value.trim();
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      loginMsg.textContent = data.error || "Fel uppgifter";
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    loginMsg.textContent = "Inloggning lyckades!";
+
+    setTimeout(function() {
+      window.location.href = redirectUrl;
+    }, 600);
+
+  } catch (err) {
+    loginMsg.textContent = "Serverfel.";
+  }
+});
+
+// REGISTER
+registerForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const name = regName.value.trim();
+  const email = regEmail.value.trim();
+  const password = regPassword.value.trim();
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      registerMsg.textContent = data.error || "Fel vid registrering";
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    registerMsg.textContent = "Registrering lyckades!";
+
+    setTimeout(function() {
+      window.location.href = redirectUrl;
+    }, 600);
+
+  } catch (err) {
+    registerMsg.textContent = "Serverfel.";
+  }
+});
+
+</script>
+
+</body>
+</html>

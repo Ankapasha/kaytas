@@ -1,0 +1,359 @@
+/* ===== BASIC RESET ===== */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+
+/* ===== HEADER ===== */
+.header {
+    background: #fff;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.nav select, 
+.nav a {
+    margin-left: 14px;
+}
+
+.nav a {
+    text-decoration: none;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+/* ===== QUICK MODE (Buy/Rent) ===== */
+.quick-mode {
+    max-width: 1300px;
+    margin: 10px auto 0 auto;
+    display: flex;
+    gap: 10px;
+    padding: 0 20px;
+}
+
+.mode-btn {
+    padding: 8px 16px;
+    border: 1px solid #1976d2;
+    background: white;
+    color: #1976d2;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.mode-btn.active {
+    background: #1976d2;
+    color: white;
+}
+
+/* ===== HERO ===== */
+.hero {
+    background: #e8edf2;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.hero h1 {
+    margin-bottom: 16px;
+}
+
+/* ===== SEARCH CONTAINER ===== */
+.search-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;             
+    gap: 10px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Property type dropdown */
+.dropdown {
+    position: relative;
+}
+
+.dropdown input {
+    padding: 10px;
+    width: 200px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    background: #fff;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 42px;
+    left: 0;
+    width: 200px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    z-index: 20;
+}
+
+.dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: #f0f0f0;
+}
+
+/* Location input */
+.search-input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 200px;
+}
+
+/* Search button */
+.search-btn {
+    padding: 10px 24px;
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* ===== MAP SECTION ===== */
+.top-map {
+    width: 100%;
+    max-width: 1300px;
+    margin: 20px auto;
+    display: block;
+}
+
+.map-placeholder {
+    background: #d9d9d9;
+    height: 300px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.actions {
+    max-width: 1300px;
+    margin: 0 auto;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.actions button {
+    padding: 10px 16px;
+    background: #1976d2;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* ===== LISTINGS ===== */
+.listings {
+    max-width: 1300px;
+    margin: 0 auto 40px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.listing-card {
+    background: #fff;
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.listing-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: #ccc;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    #topMap {
+        display: none;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .actions {
+        position: sticky;
+        top: 0;
+        background: #f4f6f8;
+        padding: 10px;
+        z-index: 10;
+        justify-content: space-between;
+    }
+
+    .actions button {
+        flex: 1;
+    }
+}
+
+/* ========================================================= */
+/* ========  LISTING PAGE ADDITIONS (NEW)  ================= */
+/* ========================================================= */
+
+/* ===== LISTING PAGE LAYOUT ===== */
+.listing-wrapper {
+    display: flex;
+    gap: 25px;
+    align-items: flex-start;
+}
+
+.listing-left {
+    width: 70%;
+}
+
+.listing-right {
+    width: 30%;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 20px;
+}
+
+/* ===== GALLERY ===== */
+.gallery {
+    position: relative;
+    width: 100%;
+    height: 420px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #ddd;
+}
+
+.gallery img {
+    width: 100%;
+    height: 420px;
+    object-fit: cover;
+    display: none;
+}
+
+.gallery img.active {
+    display: block;
+}
+
+.gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 14px;
+    background: rgba(0,0,0,0.4);
+    color: white;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 18px;
+    user-select: none;
+}
+
+.arrow-left { left: 10px; }
+.arrow-right { right: 10px; }
+
+/* ===== RIGHT CONTACT BOX ===== */
+.right-title {
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.contact-box textarea {
+    width: 100%;
+    height: 110px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    resize: none;
+    font-size: 15px;
+}
+
+.contact-btn {
+    margin-top: 10px;
+    width: 100%;
+    background: #1976d2;
+    padding: 12px;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.favorite-btn {
+    margin-top: 12px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #1976d2;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #1976d2;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ===== SUCCESS POPUP ===== */
+.success-popup {
+    display: none;
+    background: #e7f8e7;
+    color: #2a7a2a;
+    border: 1px solid #a9d8a9;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ===== MAP FULL WIDTH ===== */
+#map {
+    width: 100%;
+    height: 420px;
+    margin-top: 35px;
+    border-radius: 10px;
+    background: #ccc;
+}
+
+/* ===== RESPONSIVE LISTING PAGE ===== */
+@media (max-width: 900px) {
+    .listing-wrapper {
+        flex-direction: column;
+    }
+
+    .listing-left,
+    .listing-right {
+        width: 100%;
+    }
+
+    .listing-right {
+        position: relative;
+        top: 0;
+    }
+}

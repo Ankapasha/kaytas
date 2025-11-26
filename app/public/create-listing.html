@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Skapa eller redigera annons – Kaytas</title>
+
+  <style>
+    body { font-family: Arial; margin: 16px; background:#f5f5f5; }
+    h1 { margin-bottom: 10px; }
+
+    form {
+      max-width:760px;
+      background:#fff;
+      padding:20px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    input,textarea,select {
+      padding:10px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      font-size:15px;
+    }
+
+    button {
+      padding:10px 14px;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+      font-size:15px;
+    }
+
+    .row { display:flex; gap:10px; }
+    .btn-blue { background:#1976d2; color:white; }
+    .btn-grey { background:#ddd; }
+  </style>
+</head>
+<body>
+
+<h1 id="pageTitle">Skapa annons</h1>
+
+<form id="listingForm">
+
+  <input id="title" name="title" placeholder="Rubrik" required />
+
+  <textarea id="description" name="description" placeholder="Beskrivning" rows="5"></textarea>
+
+  <input id="price" name="price" type="number" placeholder="Pris (kr)" />
+
+  <input id="address" name="address" placeholder="Adress" />
+
+  <input id="images" name="images" placeholder="Bild-URLer (komma-separerade)" />
+
+  <select id="type" name="type">
+    <option value="">Välj typ</option>
+    <option value="Lägenhet">Lägenhet</option>
+    <option value="Hus">Hus</option>
+    <option value="Villa">Villa</option>
+    <option value="Garage">Garage</option>
+    <option value="Mark">Mark</option>
+  </select>
+
+  <div class="row">
+    <input id="size" name="size" type="number" placeholder="Storlek m²" />
+    <input id="floor" name="floor" type="number" placeholder="Våning" />
+  </div>
+
+  <select id="hasElevator" name="hasElevator">
+    <option value="false">Hiss: Nej</option>
+    <option value="true">Hiss: Ja</option>
+  </select>
+
+  <div class="row">
+    <button type="submit" class="btn-blue">Spara</button>
+    <button type="button" class="btn-grey" onclick="window.location.href='/my-listings.html'">Avbryt</button>
+  </div>
+
+</form>
+
+<script>
+  const form = document.getElementById("listingForm");
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get("edit");
+
+  if (editId) {
+    document.getElementById("pageTitle").textContent = "Redigera annons";
+    loadExistingListing(editId);
+  }
+
+  function getAuthHeader() {
+    const token = localStorage.getItem("token");
+    return token ? { "Authorization": "Bearer " + token } : {};
+  }
+
+  async function loadExistingListing(id) {
+    try {
+      const res = await fetch("/api/listings/" + id, {
+        headers: getAuthHeader()
+      });
+
+      if (!res.ok) {
+        alert("Kunde inte ladda annons.");
+        return;
+      }
+
+      const data = await res.json();
+
+      document.getElementById("title").value = data.title || "";
+      document.getElementById("description").value = data.description || "";
+      document.getElementById("price").value = data.price || "";
+      document.getElementById("address").value = data.address || "";
+      document.getElementById("images").value = (data.images || []).join(", ");
+      document.getElementById("type").value = data.type || "";
+      document.getElementById("size").value = data.size || "";
+      document.getElementById("floor").value = data.floor || "";
+      document.getElementById("hasElevator").value = data.hasElevator ? "true" : "false";
+
+    } catch (err) {
+      alert("Fel vid laddning: " + err.message);
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      title: title.value.trim(),
+      description: description.value.trim(),
+      price: Number(price.value) || 0,
+      address: address.value.trim(),
+      images: images.value.split(",").map(s => s.trim()).filter(Boolean),
+      type: type.value,
+      size: Number(size.value) || null,
+      floor: Number(floor.value) || null,
+      hasElevator: hasElevator.value === "true"
+    };
+
+    const method = editId ? "PUT" : "POST";
+    const url = editId ? "/api/listings/" + editId : "/api/listings";
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: Object.assign({"Content-Type": "application/json"}, getAuthHeader()),
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        alert("Kunde inte spara annons: " + txt);
+        return;
+      }
+
+      alert(editId ? "Annons uppdaterad." : "Annons skapad.");
+      window.location.href = "/my-listings.html";
+
+    } catch (err) {
+      alert("Fel: " + err.message);
+    }
+  });
+</script>
+
+</body>
+</html>
