@@ -10,9 +10,9 @@
       font-family: Arial, sans-serif;
       background: #f5f6f8;
       margin: 0;
-      padding: 0;
     }
 
+    /* GLOBAL HEADER */
     header {
       background: #fff;
       padding: 15px 20px;
@@ -20,6 +20,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     header h1 {
@@ -27,13 +29,17 @@
       font-size: 22px;
     }
 
-    main {
-      max-width: 800px;
+    .container {
+      max-width: 1200px;
       margin: 25px auto;
+      padding: 0 16px;
+    }
+
+    main {
       background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
     }
 
     .section-title {
@@ -46,21 +52,23 @@
     .info-line {
       margin: 6px 0;
       font-size: 15px;
+      color: #333;
     }
 
     .buttons {
-      margin-top: 20px;
+      margin-top: 25px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     button {
-      padding: 10px 14px;
+      padding: 12px 16px;
       font-size: 15px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: 600;
     }
 
     .btn-blue {
@@ -74,6 +82,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <header>
@@ -81,6 +90,7 @@
   <button class="btn-red" id="logoutBtn">Logga ut</button>
 </header>
 
+<div class="container">
 <main>
 
   <div id="profileBox">
@@ -95,6 +105,7 @@
   </div>
 
 </main>
+</div> <!-- end container -->
 
 <script>
 /* Redirect if not logged in */
