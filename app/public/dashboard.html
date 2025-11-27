@@ -1,15 +1,29 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Min Profil – Kaytas</title>
+  <title data-i18n="page_title">My Profile – Kaytas</title>
 
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f5f6f8;
       margin: 0;
+    }
+
+    /* Language selector */
+    #langBox {
+      text-align: right;
+      padding: 10px 14px 0 14px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    #langSwitcher {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
     }
 
     /* GLOBAL HEADER */
@@ -71,44 +85,199 @@
       font-weight: 600;
     }
 
-    .btn-blue {
-      background: #1976d2;
-      color: white;
-    }
-
-    .btn-red {
-      background: #e8b3b3;
-      color: #9b2b2b;
-    }
+    .btn-blue { background: #1976d2; color: white; }
+    .btn-red { background: #e8b3b3; color: #9b2b2b; }
   </style>
 </head>
 
 <body>
 
+<!-- LANGUAGE DROPDOWN -->
+<div id="langBox">
+  <select id="langSwitcher">
+    <option value="en">🇬🇧 English</option>
+    <option value="bs">🇷🇸 Serbian (Latin)</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="es">🇪🇸 Español</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="sq">🇦🇱 Shqip</option>
+  </select>
+</div>
+
 <header>
-  <h1>Min Profil</h1>
-  <button class="btn-red" id="logoutBtn">Logga ut</button>
+  <h1 data-i18n="profile_title">My Profile</h1>
+  <button class="btn-red" id="logoutBtn" data-i18n="logout">Logout</button>
 </header>
 
 <div class="container">
 <main>
 
   <div id="profileBox">
-    <p>Laddar profil...</p>
+    <p data-i18n="loading">Loading profile...</p>
   </div>
 
   <div class="buttons">
-    <button class="btn-blue" onclick="location.href='/my-listings.html'">Mina annonser</button>
-    <button class="btn-blue" onclick="location.href='/favorites.html'">Favoriter</button>
-    <button class="btn-blue" onclick="location.href='/chat.html'">Chatt</button>
-    <button class="btn-blue" onclick="location.href='/create-listing.html'">Skapa annons</button>
+    <button class="btn-blue" onclick="location.href='/my-listings.html'" data-i18n="my_listings">My Listings</button>
+    <button class="btn-blue" onclick="location.href='/favorites.html'" data-i18n="favorites">Favorites</button>
+    <button class="btn-blue" onclick="location.href='/chat.html'" data-i18n="chat">Chat</button>
+    <button class="btn-blue" onclick="location.href='/create-listing.html'" data-i18n="create_listing">Create Listing</button>
   </div>
 
 </main>
-</div> <!-- end container -->
+</div>
 
 <script>
-/* Redirect if not logged in */
+/* ============================================================
+    LANGUAGE SYSTEM
+============================================================ */
+
+const LANG = {
+  en: {
+    page_title: "My Profile – Kaytas",
+    profile_title: "My Profile",
+    logout: "Logout",
+    loading: "Loading profile...",
+    user_info: "User Information",
+    name: "Name",
+    email: "Email",
+    stats: "Statistics",
+    your_listings: "Your listings",
+    your_favorites: "Your favorites",
+    my_listings: "My Listings",
+    favorites: "Favorites",
+    chat: "Chat",
+    create_listing: "Create Listing"
+  },
+  bs: {
+    page_title: "Moj Profil – Kaytas",
+    profile_title: "Moj Profil",
+    logout: "Odjava",
+    loading: "Učitavanje profila...",
+    user_info: "Korisničke informacije",
+    name: "Ime",
+    email: "Email",
+    stats: "Statistika",
+    your_listings: "Vaši oglasi",
+    your_favorites: "Vaši favoriti",
+    my_listings: "Moji oglasi",
+    favorites: "Favoriti",
+    chat: "Chat",
+    create_listing: "Kreiraj oglas"
+  },
+  de: {
+    page_title: "Mein Profil – Kaytas",
+    profile_title: "Mein Profil",
+    logout: "Abmelden",
+    loading: "Profil wird geladen...",
+    user_info: "Benutzerinformationen",
+    name: "Name",
+    email: "E-Mail",
+    stats: "Statistik",
+    your_listings: "Ihre Anzeigen",
+    your_favorites: "Ihre Favoriten",
+    my_listings: "Meine Anzeigen",
+    favorites: "Favoriten",
+    chat: "Chat",
+    create_listing: "Anzeige erstellen"
+  },
+  fr: {
+    page_title: "Mon Profil – Kaytas",
+    profile_title: "Mon Profil",
+    logout: "Déconnexion",
+    loading: "Chargement du profil...",
+    user_info: "Informations utilisateur",
+    name: "Nom",
+    email: "Email",
+    stats: "Statistiques",
+    your_listings: "Vos annonces",
+    your_favorites: "Vos favoris",
+    my_listings: "Mes annonces",
+    favorites: "Favoris",
+    chat: "Chat",
+    create_listing: "Créer une annonce"
+  },
+  es: {
+    page_title: "Mi Perfil – Kaytas",
+    profile_title: "Mi Perfil",
+    logout: "Cerrar sesión",
+    loading: "Cargando perfil...",
+    user_info: "Información del usuario",
+    name: "Nombre",
+    email: "Correo electrónico",
+    stats: "Estadísticas",
+    your_listings: "Tus anuncios",
+    your_favorites: "Tus favoritos",
+    my_listings: "Mis anuncios",
+    favorites: "Favoritos",
+    chat: "Chat",
+    create_listing: "Crear anuncio"
+  },
+  it: {
+    page_title: "Il Mio Profilo – Kaytas",
+    profile_title: "Il Mio Profilo",
+    logout: "Esci",
+    loading: "Caricamento profilo...",
+    user_info: "Informazioni utente",
+    name: "Nome",
+    email: "Email",
+    stats: "Statistiche",
+    your_listings: "I tuoi annunci",
+    your_favorites: "I tuoi preferiti",
+    my_listings: "I miei annunci",
+    favorites: "Preferiti",
+    chat: "Chat",
+    create_listing: "Crea annuncio"
+  },
+  sq: {
+    page_title: "Profili Im – Kaytas",
+    profile_title: "Profili Im",
+    logout: "Dil",
+    loading: "Duke ngarkuar profilin...",
+    user_info: "Informacioni i përdoruesit",
+    name: "Emri",
+    email: "Email",
+    stats: "Statistikat",
+    your_listings: "Njoftimet tuaja",
+    your_favorites: "Të preferuarat tuaja",
+    my_listings: "Njoftimet e mia",
+    favorites: "Të preferuarat",
+    chat: "Chat",
+    create_listing: "Krijo njoftim"
+  }
+};
+
+function currentLang() {
+  return localStorage.getItem("lang") || "en";
+}
+
+function applyLanguage(lang) {
+  if (!LANG[lang]) lang = "en";
+  localStorage.setItem("lang", lang);
+  const dict = LANG[lang];
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key]) el.textContent = dict[key];
+  });
+
+  document.title = dict.page_title;
+}
+
+function initLanguage() {
+  const saved = currentLang();
+  const switcher = document.getElementById("langSwitcher");
+  switcher.value = saved;
+  switcher.addEventListener("change", e => applyLanguage(e.target.value));
+  applyLanguage(saved);
+}
+
+initLanguage();
+
+/* ============================================================
+    PROFILE LOGIC
+============================================================ */
+
 function requireLogin() {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -118,7 +287,6 @@ function requireLogin() {
   return token;
 }
 
-/* Load profile */
 async function loadProfile() {
   const token = requireLogin();
   if (!token) return;
@@ -146,27 +314,28 @@ async function loadProfile() {
     });
     const favorites = resFavs.ok ? await resFavs.json() : [];
 
-    document.getElementById("profileBox").innerHTML = `
-      <div class="section-title">Användarinformation</div>
-      <div class="info-line"><strong>Namn:</strong> ${user.name || ""}</div>
-      <div class="info-line"><strong>E-post:</strong> ${user.email}</div>
+    const dict = LANG[currentLang()];
 
-      <div class="section-title">Statistik</div>
-      <div class="info-line"><strong>Dina annonser:</strong> ${myListings.length}</div>
-      <div class="info-line"><strong>Dina favoriter:</strong> ${favorites.length}</div>
+    document.getElementById("profileBox").innerHTML = `
+      <div class="section-title">${dict.user_info}</div>
+      <div class="info-line"><strong>${dict.name}:</strong> ${user.name || ""}</div>
+      <div class="info-line"><strong>${dict.email}:</strong> ${user.email}</div>
+
+      <div class="section-title">${dict.stats}</div>
+      <div class="info-line"><strong>${dict.your_listings}:</strong> ${myListings.length}</div>
+      <div class="info-line"><strong>${dict.your_favorites}:</strong> ${favorites.length}</div>
     `;
-  } catch (err) {
-    document.getElementById("profileBox").innerHTML = "Kunde inte ladda profil.";
+  } catch {
+    document.getElementById("profileBox").innerHTML =
+      LANG[currentLang()].loading;
   }
 }
 
-/* Logout */
 document.getElementById("logoutBtn").onclick = () => {
   localStorage.removeItem("token");
   window.location.href = "/";
 };
 
-/* Init */
 loadProfile();
 </script>
 
