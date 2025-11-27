@@ -1,5 +1,6 @@
 // ------------------------------------------------------
 //  LANGUAGE DATABASE
+//  Languages: EN, SR (latin), DE, FR, ES, IT, SQ
 // ------------------------------------------------------
 
 const LANG = {
@@ -17,6 +18,21 @@ const LANG = {
         chat: "Chat",
         my_listings: "My Listings",
         add_listing: "Create listing"
+    },
+    sr: {
+        listing_title: "Oglas",
+        contact_seller: "Kontaktiraj prodavca",
+        add_favorite: "Dodaj u omiljene",
+        remove_favorite: "Ukloni iz omiljenih",
+        price: "Cena",
+        address: "Adresa",
+        description: "Opis",
+        login_required: "Morate biti prijavljeni",
+        back: "Nazad",
+        favorites: "Omiljeni",
+        chat: "Čet",
+        my_listings: "Moji oglasi",
+        add_listing: "Kreiraj oglas"
     },
     de: {
         listing_title: "Anzeige",
@@ -48,6 +64,21 @@ const LANG = {
         my_listings: "Mes annonces",
         add_listing: "Créer une annonce"
     },
+    es: {
+        listing_title: "Anuncio",
+        contact_seller: "Contactar al vendedor",
+        add_favorite: "Añadir a favoritos",
+        remove_favorite: "Quitar de favoritos",
+        price: "Precio",
+        address: "Dirección",
+        description: "Descripción",
+        login_required: "Debes iniciar sesión",
+        back: "Atrás",
+        favorites: "Favoritos",
+        chat: "Chat",
+        my_listings: "Mis anuncios",
+        add_listing: "Crear anuncio"
+    },
     it: {
         listing_title: "Annuncio",
         contact_seller: "Contatta il venditore",
@@ -63,38 +94,22 @@ const LANG = {
         my_listings: "I miei annunci",
         add_listing: "Crea annuncio"
     },
-    es: {
-        listing_title: "Anuncio",
-        contact_seller: "Contactar al vendedor",
-        add_favorite: "Añadir a favoritos",
-        remove_favorite: "Eliminar de favoritos",
-        price: "Precio",
-        address: "Dirección",
-        description: "Descripción",
-        login_required: "Debes iniciar sesión",
-        back: "Atrás",
-        favorites: "Favoritos",
-        chat: "Chat",
-        my_listings: "Mis anuncios",
-        add_listing: "Crear anuncio"
-    },
-    sh: {
-        listing_title: "Oglas",
-        contact_seller: "Kontaktiraj prodavača",
-        add_favorite: "Dodaj u favorite",
-        remove_favorite: "Ukloni iz favorita",
-        price: "Cijena",
+    sq: {
+        listing_title: "Shpallje",
+        contact_seller: "Kontakto shitësin",
+        add_favorite: "Shto tek të preferuarat",
+        remove_favorite: "Hiq nga të preferuarat",
+        price: "Çmimi",
         address: "Adresa",
-        description: "Opis",
-        login_required: "Morate biti prijavljeni",
-        back: "Nazad",
-        favorites: "Favoriti",
+        description: "Përshkrimi",
+        login_required: "Duhet të jeni i kyçur",
+        back: "Kthehu",
+        favorites: "Të preferuarat",
         chat: "Chat",
-        my_listings: "Moji oglasi",
-        add_listing: "Kreiraj oglas"
+        my_listings: "Shpalljet e mia",
+        add_listing: "Krijo shpallje"
     }
 };
-
 
 // ------------------------------------------------------
 //  APPLY LANGUAGE
@@ -112,77 +127,33 @@ function applyLanguage(lang) {
     });
 }
 
-
 // ------------------------------------------------------
-//  AUTO-DETECT LANGUAGE BASED ON COUNTRY
-// ------------------------------------------------------
-
-async function detectLanguageByLocation() {
-    try {
-        const res = await fetch("https://ipapi.co/json/");
-        const data = await res.json();
-
-        const country = data.country_code?.toLowerCase();
-
-        const map = {
-            se: "en",
-            no: "en",
-            dk: "en",
-            fi: "en",
-            us: "en",
-            gb: "en",
-            ca: "en",
-
-            de: "de",
-            at: "de",
-            ch: "de",
-
-            fr: "fr",
-            be: "fr",
-            lu: "fr",
-
-            it: "it",
-            sm: "it",
-
-            es: "es",
-            mx: "es",
-            ar: "es",
-            cl: "es",
-            co: "es",
-
-            hr: "sh",
-            rs: "sh",
-            ba: "sh",
-            me: "sh",
-            mk: "sh"
-        };
-
-        return map[country] || "en";
-
-    } catch {
-        return "en";
-    }
-}
-
-
-// ------------------------------------------------------
-//  INITIALIZE LANGUAGE
+//  INITIALISATION (AUTO-DETECT FIRST TIME)
+//  Sweden -> English by default
 // ------------------------------------------------------
 
-async function initLanguage() {
-    let stored = localStorage.getItem("lang");
+function initLanguage() {
+    let saved = localStorage.getItem("lang");
 
-    if (!stored) {
-        stored = await detectLanguageByLocation();  
-        localStorage.setItem("lang", stored);
+    if (!saved) {
+        const browser = (navigator.language || navigator.userLanguage || "en").slice(0,2).toLowerCase();
+
+        if (browser === "sv") {
+            saved = "en";
+        } else if (["en","sr","de","fr","es","it","sq"].includes(browser)) {
+            saved = browser;
+        } else {
+            saved = "en";
+        }
+
+        localStorage.setItem("lang", saved);
     }
 
-    applyLanguage(stored);
+    applyLanguage(saved);
 
     const switcher = document.getElementById("langSwitcher");
     if (switcher) {
-        switcher.value = stored;
-
+        switcher.value = saved;
         switcher.addEventListener("change", (e) => {
             applyLanguage(e.target.value);
         });
