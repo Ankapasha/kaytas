@@ -6,6 +6,10 @@
   <title>Kaytas</title>
   <link rel="stylesheet" href="style.css">
 
+  <!-- Leaflet MAP -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
     body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
 
@@ -31,6 +35,14 @@
     }
 
     nav a:hover { text-decoration:underline; }
+
+    #map {
+      height: 380px;
+      margin: 20px auto;
+      max-width:1200px;
+      border-radius:10px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    }
 
     .listings {
       display:grid;
@@ -104,12 +116,11 @@
       display:none;
       box-shadow:0 2px 6px rgba(0,0,0,0.1);
     }
-
   </style>
 </head>
 
 <body>
-    <div class="container">
+<div class="container">
 
 <header>
   <div class="logo">Kaytas</div>
@@ -122,6 +133,9 @@
   <button id="filterBtn" class="btn">Filter</button>
   <button id="sortBtn" class="btn">Sort</button>
 </div>
+
+<!-- MAP -->
+<div id="map"></div>
 
 <div id="filterPanel">
   <h3>Filter</h3>
@@ -151,10 +165,9 @@
 <div class="listings"></div>
 <div id="pagination"></div>
 
-
 <script>
 
-/* HEADER */
+/* ---------- HEADER ---------- */
 (function() {
     const token = localStorage.getItem("token");
     const nav = document.getElementById("navLinks");
@@ -183,7 +196,7 @@
     }
 })();
 
-/* REDIRECT */
+/* ---------- LOGIN CHECK ---------- */
 function requireLogin(redirectUrl) {
     if (!redirectUrl) redirectUrl = window.location.href;
     const token = localStorage.getItem("token");
@@ -194,19 +207,65 @@ function requireLogin(redirectUrl) {
     return true;
 }
 
-/* GLOBALS */
+/* ---------- GLOBALS ---------- */
 let ALL_LISTINGS = [];
 let CURRENT_PAGE = 1;
 const ITEMS_PER_PAGE = 20;
 const listingsContainer = document.querySelector(".listings");
 
-function getToken() {
-  return localStorage.getItem("token");
+let map;
+let markersLayer;
+let mapInitialized = false;
+
+function initMap() {
+    if (mapInitialized) return;
+
+    map = L.map("map").setView([46.2, 6.1], 5);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19
+    }).addTo(map);
+
+    markersLayer = L.layerGroup().addTo(map);
+    mapInitialized = true;
 }
 
-/* FETCH FAVORITES */
+function updateMap(listings) {
+    initMap();
+    markersLayer.clearLayers();
+
+    const bounds = [];
+
+    listings.forEach(listing => {
+        if (!listing.location || !listing.location.coordinates) return;
+
+        const [lng, lat] = listing.location.coordinates;
+
+        const marker = L.marker([lat, lng]).addTo(markersLayer);
+
+        marker.bindPopup(
+            `<b>${listing.title || ""}</b><br>` +
+            `${listing.price ? listing.price + " kr" : ""}<br>` +
+            `${listing.address || ""}`
+        );
+
+        marker.on("click", () => {
+            if (listing._id) {
+                window.location.href = "/listing.html?id=" + listing._id;
+            }
+        });
+
+        bounds.push([lat, lng]);
+    });
+
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [20,20] });
+    }
+}
+
+/* ---------- FAVORITES FETCH ---------- */
 async function fetchFavorites() {
-    const token = getToken();
+    const token = localStorage.getItem("token");
     if (!token) return [];
 
     try {
@@ -216,14 +275,14 @@ async function fetchFavorites() {
 
         if (!res.ok) return [];
         const data = await res.json();
-        return data.map(function(f) { return f._id; });
+        return data.map(f => f._id);
 
-    } catch (e) {
+    } catch {
         return [];
     }
 }
 
-/* RENDER PAGE */
+/* ---------- RENDER PAGE ---------- */
 function renderPage() {
     listingsContainer.innerHTML = "";
 
@@ -236,8 +295,8 @@ function renderPage() {
         return;
     }
 
-    fetchFavorites().then(function(favoriteIds) {
-        pageListings.forEach(function(listing) {
+    fetchFavorites().then(favoriteIds => {
+        pageListings.forEach(listing => {
 
             const isFavorite = favoriteIds.includes(listing._id);
 
@@ -267,7 +326,7 @@ function renderPage() {
     renderPaginationControls();
 }
 
-/* PAGINATION */
+/* ---------- PAGINATION ---------- */
 function renderPaginationControls() {
     const totalPages = Math.ceil(ALL_LISTINGS.length / ITEMS_PER_PAGE);
     const container = document.getElementById("pagination");
@@ -295,7 +354,7 @@ function gotoPage(n) {
     renderPage();
 }
 
-/* LOAD LISTINGS */
+/* ---------- LOAD LISTINGS ---------- */
 async function loadListings() {
     listingsContainer.innerHTML = "<p>Loading...</p>";
 
@@ -306,27 +365,26 @@ async function loadListings() {
         ALL_LISTINGS = listings;
         CURRENT_PAGE = 1;
         renderPage();
+        updateMap(ALL_LISTINGS);
 
-    } catch (err) {
+    } catch {
         listingsContainer.innerHTML = "<p>Error loading listings</p>";
     }
 }
 
-/* FAVORITE BUTTONS */
+/* ---------- FAVORITE BUTTONS ---------- */
 function addFavoriteButtonEvents() {
-
     const buttons = document.querySelectorAll(".fav-btn");
 
-    buttons.forEach(function(btn) {
-
-        btn.addEventListener("click", async function (e) {
+    buttons.forEach(btn => {
+        btn.addEventListener("click", async function(e) {
             e.stopPropagation();
 
             const listingId = this.getAttribute("data-id");
 
             if (!requireLogin()) return;
 
-            const token = getToken();
+            const token = localStorage.getItem("token");
 
             if (this.textContent.indexOf("Add") !== -1) {
 
@@ -350,7 +408,7 @@ function addFavoriteButtonEvents() {
     });
 }
 
-/* SEARCH */
+/* ---------- SEARCH ---------- */
 async function searchListings() {
     const query = document.getElementById("searchInput").value.trim();
 
@@ -368,8 +426,9 @@ async function searchListings() {
         ALL_LISTINGS = listings;
         CURRENT_PAGE = 1;
         renderPage();
+        updateMap(ALL_LISTINGS);
 
-    } catch (e) {
+    } catch {
         listingsContainer.innerHTML = "<p>Error searching</p>";
     }
 }
@@ -379,7 +438,7 @@ document.getElementById("searchInput").addEventListener("keypress", function(e) 
     if (e.key === "Enter") searchListings();
 });
 
-/* FILTER */
+/* ---------- FILTER ---------- */
 document.getElementById("filterBtn").addEventListener("click", function() {
     const panel = document.getElementById("filterPanel");
     panel.style.display =
@@ -412,13 +471,14 @@ async function applyFilters() {
         ALL_LISTINGS = listings;
         CURRENT_PAGE = 1;
         renderPage();
+        updateMap(ALL_LISTINGS);
 
-    } catch (e) {
+    } catch {
         listingsContainer.innerHTML = "<p>Error filtering</p>";
     }
 }
 
-/* SORT */
+/* ---------- SORT ---------- */
 document.getElementById("sortBtn").addEventListener("click", function() {
     const panel = document.getElementById("sortPanel");
     panel.style.display =
@@ -427,7 +487,7 @@ document.getElementById("sortBtn").addEventListener("click", function() {
         : "none";
 });
 
-document.querySelectorAll(".sort-option").forEach(function(btn) {
+document.querySelectorAll(".sort-option").forEach(btn => {
     btn.addEventListener("click", function() {
         applySort(btn.getAttribute("data-sort"));
     });
@@ -450,17 +510,18 @@ async function applySort(sortType) {
         ALL_LISTINGS = listings;
         CURRENT_PAGE = 1;
         renderPage();
+        updateMap(ALL_LISTINGS);
 
-    } catch (e) {
+    } catch {
         listingsContainer.innerHTML = "<p>Error sorting</p>";
     }
 }
 
-/* INIT */
+/* ---------- INIT ---------- */
 loadListings();
 
 </script>
 
-    </div> <!-- end container -->
+</div>
 </body>
 </html>
