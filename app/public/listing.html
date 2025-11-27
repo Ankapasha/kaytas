@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Annons – Kaytas</title>
+  <title data-i18n="page_title">Listing – Kaytas</title>
   <link rel="stylesheet" href="style.css">
 
   <!-- MAP -->
@@ -12,24 +12,95 @@
 
   <style>
     body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
-    header { background:#fff; padding:12px 18px; box-shadow:0 2px 6px rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; }
+
+    /* Language box */
+    #langBox {
+      text-align: right;
+      padding: 10px 16px 0 16px;
+    }
+
+    #langSwitcher {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    header {
+      background:#fff;
+      padding:12px 18px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:4px;
+    }
     header .logo { font-size:20px; font-weight:600; cursor:pointer; }
     header a { margin-left:10px; text-decoration:none; color:#333; }
 
     main { max-width:1100px; margin:20px auto; padding:16px; display:flex; gap:20px; }
 
-    .gallery { flex:1 1 60%; background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); position:relative; overflow:hidden; }
-    .gallery img { width:100%; height:520px; object-fit:cover; display:block; border-radius:6px; }
+    .gallery {
+      flex:1 1 60%;
+      background:#fff;
+      padding:12px;
+      border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.06);
+      position:relative;
+      overflow:hidden;
+    }
+    .gallery img {
+      width:100%;
+      height:520px;
+      object-fit:cover;
+      display:block;
+      border-radius:6px;
+    }
 
-    .thumbs { display:flex; gap:8px; margin-top:10px; overflow-x:auto; padding-bottom:5px; }
-    .thumbs img { width:80px; height:60px; object-fit:cover; border-radius:4px; cursor:pointer; opacity:0.9; border:2px solid transparent; }
-    .thumbs img.active { border-color:#1976d2; opacity:1; }
+    .thumbs {
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+      overflow-x:auto;
+      padding-bottom:5px;
+    }
+    .thumbs img {
+      width:80px;
+      height:60px;
+      object-fit:cover;
+      border-radius:4px;
+      cursor:pointer;
+      opacity:0.9;
+      border:2px solid transparent;
+    }
+    .thumbs img.active {
+      border-color:#1976d2;
+      opacity:1;
+    }
 
-    .arrow { position:absolute; top:50%; transform:translateY(-50%); background:#fff; border:none; padding:8px 10px; border-radius:4px; cursor:pointer; }
+    .arrow {
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      background:#fff;
+      border:none;
+      padding:8px 10px;
+      border-radius:4px;
+      cursor:pointer;
+    }
     .arrow.left { left:10px; }
     .arrow.right { right:10px; }
 
-    .details { flex:1 1 40%; background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); display:flex; flex-direction:column; justify-content:space-between; }
+    .details {
+      flex:1 1 40%;
+      background:#fff;
+      padding:16px;
+      border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.06);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
     .details h1 { margin:0 0 8px 0; font-size:22px; }
 
     .info p { margin:8px 0; font-size:15px; color:#333; }
@@ -58,13 +129,26 @@
 </head>
 
 <body>
+
+<div id="langBox">
+  <select id="langSwitcher">
+    <option value="en">🇬🇧 English</option>
+    <option value="bs">🇷🇸 Serbian (Latin)</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="es">🇪🇸 Español</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="sq">🇦🇱 Shqip</option>
+  </select>
+</div>
+
 <div class="container">
 
 <header>
   <div class="logo" onclick="location.href='/'">Kaytas</div>
   <div>
-    <a href="/">Home</a>
-    <a href="/login.html">Login</a>
+    <a href="/" data-i18n="nav_home">Home</a>
+    <a href="/login.html" data-i18n="nav_login">Login</a>
   </div>
 </header>
 
@@ -75,7 +159,7 @@
     <button class="arrow left" id="prevBtn">&lt;</button>
     <button class="arrow right" id="nextBtn">&gt;</button>
 
-    <img id="mainImage" src="" alt="Annonsbild">
+    <img id="mainImage" src="" alt="Listing image">
     <div id="thumbs" class="thumbs"></div>
   </section>
 
@@ -85,13 +169,13 @@
       <h1 id="title"></h1>
 
       <div class="info">
-        <p><strong>Pris:</strong> <span id="price"></span> kr</p>
-        <p><strong>Adress:</strong> <span id="address"></span></p>
-        <p class="small"><strong>Upplagd:</strong> <span id="createdAt"></span></p>
+        <p><strong data-i18n="price_label">Price:</strong> <span id="price"></span> kr</p>
+        <p><strong data-i18n="address_label">Address:</strong> <span id="address"></span></p>
+        <p class="small"><strong data-i18n="posted_label">Posted:</strong> <span id="createdAt"></span></p>
       </div>
 
       <div style="margin-top:12px;">
-        <strong>Beskrivning</strong>
+        <strong data-i18n="description_label">Description</strong>
         <p id="description"></p>
       </div>
 
@@ -102,12 +186,12 @@
 
     <div>
       <div class="actions">
-        <button id="favoriteBtn" class="btn-fav">Add to favorites</button>
-        <button id="contactBtn" class="btn-primary">Kontakta säljaren</button>
+        <button id="favoriteBtn" class="btn-fav" data-fav="no" data-i18n="add_favorite">Add to favorites</button>
+        <button id="contactBtn" class="btn-primary" data-i18n="contact_seller">Contact seller</button>
       </div>
 
       <div class="small" style="margin-top:10px;">
-        Annons-ID: <span id="listingId"></span>
+        <span data-i18n="listing_id_label">Listing ID:</span> <span id="listingId"></span>
       </div>
     </div>
   </aside>
@@ -115,6 +199,168 @@
 </main>
 
 <script>
+/* ───────────────────────────────────────────── */
+/* LANGUAGE SYSTEM                               */
+/* ───────────────────────────────────────────── */
+const LANG = {
+  en: {
+    page_title: "Listing – Kaytas",
+    nav_home: "Home",
+    nav_login: "Login",
+    price_label: "Price:",
+    address_label: "Address:",
+    posted_label: "Posted:",
+    description_label: "Description",
+    contact_seller: "Contact seller",
+    add_favorite: "Add to favorites",
+    remove_favorite: "Remove favorite",
+    listing_id_label: "Listing ID:",
+    no_listing: "No listing selected.",
+    load_error: "Could not load listing.",
+    location_popup: "Location"
+  },
+  bs: {
+    page_title: "Oglas – Kaytas",
+    nav_home: "Početna",
+    nav_login: "Prijava",
+    price_label: "Cijena:",
+    address_label: "Adresa:",
+    posted_label: "Objavljeno:",
+    description_label: "Opis",
+    contact_seller: "Kontaktiraj prodavca",
+    add_favorite: "Dodaj u omiljene",
+    remove_favorite: "Ukloni iz omiljenih",
+    listing_id_label: "ID oglasa:",
+    no_listing: "Nijedan oglas nije odabran.",
+    load_error: "Nije moguće učitati oglas.",
+    location_popup: "Lokacija"
+  },
+  de: {
+    page_title: "Anzeige – Kaytas",
+    nav_home: "Startseite",
+    nav_login: "Login",
+    price_label: "Preis:",
+    address_label: "Adresse:",
+    posted_label: "Veröffentlicht:",
+    description_label: "Beschreibung",
+    contact_seller: "Verkäufer kontaktieren",
+    add_favorite: "Zu Favoriten hinzufügen",
+    remove_favorite: "Aus Favoriten entfernen",
+    listing_id_label: "Anzeige-ID:",
+    no_listing: "Keine Anzeige ausgewählt.",
+    load_error: "Anzeige konnte nicht geladen werden.",
+    location_popup: "Standort"
+  },
+  fr: {
+    page_title: "Annonce – Kaytas",
+    nav_home: "Accueil",
+    nav_login: "Connexion",
+    price_label: "Prix :",
+    address_label: "Adresse :",
+    posted_label: "Publié :",
+    description_label: "Description",
+    contact_seller: "Contacter le vendeur",
+    add_favorite: "Ajouter aux favoris",
+    remove_favorite: "Retirer des favoris",
+    listing_id_label: "ID de l'annonce :",
+    no_listing: "Aucune annonce sélectionnée.",
+    load_error: "Impossible de charger l'annonce.",
+    location_popup: "Emplacement"
+  },
+  es: {
+    page_title: "Anuncio – Kaytas",
+    nav_home: "Inicio",
+    nav_login: "Iniciar sesión",
+    price_label: "Precio:",
+    address_label: "Dirección:",
+    posted_label: "Publicado:",
+    description_label: "Descripción",
+    contact_seller: "Contactar al vendedor",
+    add_favorite: "Añadir a favoritos",
+    remove_favorite: "Quitar de favoritos",
+    listing_id_label: "ID del anuncio:",
+    no_listing: "Ningún anuncio seleccionado.",
+    load_error: "No se pudo cargar el anuncio.",
+    location_popup: "Ubicación"
+  },
+  it: {
+    page_title: "Annuncio – Kaytas",
+    nav_home: "Home",
+    nav_login: "Accedi",
+    price_label: "Prezzo:",
+    address_label: "Indirizzo:",
+    posted_label: "Pubblicato:",
+    description_label: "Descrizione",
+    contact_seller: "Contatta il venditore",
+    add_favorite: "Aggiungi ai preferiti",
+    remove_favorite: "Rimuovi dai preferiti",
+    listing_id_label: "ID annuncio:",
+    no_listing: "Nessun annuncio selezionato.",
+    load_error: "Impossibile caricare l'annuncio.",
+    location_popup: "Posizione"
+  },
+  sq: {
+    page_title: "Shpallje – Kaytas",
+    nav_home: "Kryefaqja",
+    nav_login: "Hyr",
+    price_label: "Çmimi:",
+    address_label: "Adresa:",
+    posted_label: "Publikuar:",
+    description_label: "Përshkrimi",
+    contact_seller: "Kontakto shitësin",
+    add_favorite: "Shto tek të preferuarat",
+    remove_favorite: "Hiq nga të preferuarat",
+    listing_id_label: "ID e shpalljes:",
+    no_listing: "Asnjë shpallje e zgjedhur.",
+    load_error: "Nuk mund të ngarkohet shpallja.",
+    location_popup: "Vendndodhja"
+  }
+};
+
+function currentLang() {
+  return localStorage.getItem("lang") || "en";
+}
+
+function applyLanguage(lang) {
+  if (!LANG[lang]) lang = "en";
+  localStorage.setItem("lang", lang);
+  const dict = LANG[lang];
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key]) el.textContent = dict[key];
+  });
+
+  document.title = dict.page_title || "Listing – Kaytas";
+
+  // Update favorite & contact buttons text based on state
+  const favBtn = document.getElementById("favoriteBtn");
+  if (favBtn) {
+    if (favBtn.dataset.fav === "yes") {
+      favBtn.textContent = dict.remove_favorite;
+    } else {
+      favBtn.textContent = dict.add_favorite;
+    }
+  }
+  const contactBtn = document.getElementById("contactBtn");
+  if (contactBtn) contactBtn.textContent = dict.contact_seller;
+}
+
+function initLanguage() {
+  let saved = currentLang();
+  const switcher = document.getElementById("langSwitcher");
+  if (switcher) {
+    switcher.value = saved;
+    switcher.addEventListener("change", e => {
+      applyLanguage(e.target.value);
+    });
+  }
+  applyLanguage(saved);
+}
+
+/* ───────────────────────────────────────────── */
+/* LOGIN / DOM HELPERS                           */
+/* ───────────────────────────────────────────── */
 function requireLogin(redirectUrl) {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -129,7 +375,9 @@ function setText(id, text) {
   if (el) el.textContent = text || "";
 }
 
-/* GALLERY */
+/* ───────────────────────────────────────────── */
+/* GALLERY                                       */
+/* ───────────────────────────────────────────── */
 let images = [];
 let currentIndex = 0;
 
@@ -160,7 +408,9 @@ mainImage.addEventListener("touchend", e => {
   if (diff < -40) showImage(currentIndex + 1);
 });
 
-/* MAP VARIABLES */
+/* ───────────────────────────────────────────── */
+/* MAP VARIABLES                                 */
+/* ───────────────────────────────────────────── */
 let map;
 let marker;
 
@@ -168,9 +418,10 @@ let marker;
 let listingData = null;
 
 async function loadListing() {
+  const lang = currentLang();
   const id = new URLSearchParams(window.location.search).get("id");
   if (!id) {
-    alert("Ingen annons vald.");
+    alert(LANG[lang].no_listing);
     location.href = "/";
     return;
   }
@@ -194,12 +445,10 @@ async function loadListing() {
     showImage(0);
 
     updateFavoriteButton();
-
-    /* INIT MAP */
     loadMap();
 
   } catch {
-    alert("Kunde inte hämta annonsen.");
+    alert(LANG[lang].load_error);
     location.href = "/";
   }
 }
@@ -209,6 +458,7 @@ function loadMap() {
   if (!listingData.location || !listingData.location.coordinates) return;
 
   const [lng, lat] = listingData.location.coordinates;
+  const lang = currentLang();
 
   map = L.map("map").setView([lat, lng], 14);
 
@@ -217,8 +467,7 @@ function loadMap() {
   }).addTo(map);
 
   marker = L.marker([lat, lng]).addTo(map);
-
-  marker.bindPopup(listingData.address || "Location").openPopup();
+  marker.bindPopup(listingData.address || LANG[lang].location_popup).openPopup();
 }
 
 /* FAVORITES */
@@ -227,9 +476,10 @@ function getToken() { return localStorage.getItem("token"); }
 async function updateFavoriteButton() {
   const btn = document.getElementById("favoriteBtn");
   const token = getToken();
+  const lang = currentLang();
 
   if (!token) {
-    btn.textContent = "Add to favorites";
+    btn.textContent = LANG[lang].add_favorite;
     btn.dataset.fav = "no";
     return;
   }
@@ -242,11 +492,11 @@ async function updateFavoriteButton() {
     const favs = await res.json();
     const isFav = favs.some(f => f._id === listingData._id);
 
-    btn.textContent = isFav ? "Remove favorite" : "Add to favorites";
+    btn.textContent = isFav ? LANG[lang].remove_favorite : LANG[lang].add_favorite;
     btn.dataset.fav = isFav ? "yes" : "no";
 
   } catch {
-    btn.textContent = "Add to favorites";
+    btn.textContent = LANG[lang].add_favorite;
   }
 }
 
@@ -256,6 +506,7 @@ document.getElementById("favoriteBtn").onclick = async function(e) {
 
   const btn = this;
   const token = getToken();
+  const lang = currentLang();
   const isFav = btn.dataset.fav === "yes";
 
   const res = await fetch("/api/favorites/" + listingData._id, {
@@ -264,8 +515,8 @@ document.getElementById("favoriteBtn").onclick = async function(e) {
   });
 
   if (res.ok) {
-    btn.textContent = isFav ? "Add to favorites" : "Remove favorite";
     btn.dataset.fav = isFav ? "no" : "yes";
+    btn.textContent = isFav ? LANG[lang].add_favorite : LANG[lang].remove_favorite;
   }
 };
 
@@ -275,6 +526,8 @@ document.getElementById("contactBtn").onclick = function() {
   location.href = "/chat.html?adId=" + encodeURIComponent(listingData._id);
 };
 
+/* INIT */
+initLanguage();
 loadListing();
 </script>
 
