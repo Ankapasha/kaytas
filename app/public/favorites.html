@@ -17,7 +17,6 @@
       padding: 20px;
     }
 
-    /* Language selector */
     #langBox {
       text-align: right;
       margin-bottom: 15px;
@@ -58,23 +57,10 @@
       border-radius: 6px;
     }
 
-    .fav-info {
-      flex: 1;
-    }
+    .fav-info { flex: 1; }
+    .fav-title { font-size: 18px; font-weight: 600; margin: 0; }
+    .fav-meta { font-size: 14px; color: #555; margin-top: 4px; }
 
-    .fav-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .fav-meta {
-      font-size: 14px;
-      color: #555;
-      margin-top: 4px;
-    }
-
-    /* Mini map */
     .miniMap {
       width: 140px;
       height: 95px;
@@ -96,14 +82,8 @@
       font-size: 14px;
     }
 
-    .open-btn {
-      background: #e0e0e0;
-    }
-
-    .remove-btn {
-      background: #e8b3b3;
-      color: #9b2b2b;
-    }
+    .open-btn { background: #e0e0e0; }
+    .remove-btn { background: #e8b3b3; color: #9b2b2b; }
 
     .empty-message {
       text-align: center;
@@ -116,6 +96,7 @@
 
 <body>
 
+<!-- LANGUAGE SELECTOR -->
 <div id="langBox">
   <select id="langSwitcher">
     <option value="en">🇬🇧 English</option>
@@ -135,9 +116,9 @@
 </div>
 
 <script>
-/* ─────────────────────────────────────────────── */
-/* LANGUAGE SYSTEM                                 */
-/* ─────────────────────────────────────────────── */
+/* ===========================================================
+   LANGUAGE SYSTEM
+=========================================================== */
 const LANG = {
   en:{favorites:"Favorites",loading:"Loading...",remove:"Remove",open:"Open",none:"No favorites yet"},
   bs:{favorites:"Favoriti",loading:"Učitavanje...",remove:"Ukloni",open:"Otvori",none:"Nema favorita"},
@@ -148,34 +129,46 @@ const LANG = {
   sq:{favorites:"Të preferuara",loading:"Duke u ngarkuar...",remove:"Hiq",open:"Hap",none:"Pa të preferuara"}
 };
 
+function currentLang(){
+  return localStorage.getItem("lang") || "en";
+}
+
 function applyLanguage(lang){
   localStorage.setItem("lang",lang);
   const d = LANG[lang];
 
+  // Translate text
   document.querySelectorAll("[data-i18n]").forEach(el=>{
     const key = el.getAttribute("data-i18n");
     if(d[key]) el.textContent = d[key];
   });
+
+  // Update title
+  const t = document.querySelector("title[data-i18n]");
+  if(t){
+    const key = t.getAttribute("data-i18n");
+    t.textContent = d[key] + " – Kaytas";
+  }
 }
 
 function initLanguage(){
-  let lang = localStorage.getItem("lang") || "en";
+  const lang = currentLang();
   document.getElementById("langSwitcher").value = lang;
   applyLanguage(lang);
 
   document.getElementById("langSwitcher").addEventListener("change",e=>{
     applyLanguage(e.target.value);
-    loadFavorites(); // rerender for button text
+    loadFavorites();
   });
 }
 
 initLanguage();
 
-/* ─────────────────────────────────────────────── */
-/* FAVORITES LOGIC                                 */
-/* ─────────────────────────────────────────────── */
+/* ===========================================================
+   FAVORITES + MINI MAPS
+=========================================================== */
 async function loadFavorites() {
-  const lang = localStorage.getItem("lang");
+  const lang = currentLang();
   const token = localStorage.getItem("token");
   const box = document.getElementById("favoritesBox");
 
@@ -217,39 +210,48 @@ async function loadFavorites() {
         <p class="fav-meta">${item.price} kr – ${item.address || ''}</p>
       </div>
 
-      <!-- Mini map -->
       <div class="miniMap" id="map_${id}"></div>
 
       <div class="fav-actions">
-        <button class="open-btn" onclick="openListing('${id}')">${LANG[lang].open}</button>
-        <button class="remove-btn" onclick="removeFavorite('${id}')">${LANG[lang].remove}</button>
+        <button class="open-btn">${LANG[lang].open}</button>
+        <button class="remove-btn">${LANG[lang].remove}</button>
       </div>
     `;
 
+    // Buttons
+    card.querySelector(".open-btn").onclick = () => openListing(id);
+    card.querySelector(".remove-btn").onclick = () => removeFavorite(id);
+
     box.appendChild(card);
 
+    // Mini-map
     if(coords){
-      setTimeout(()=>renderMiniMap(id,coords),50);
+      setTimeout(()=>renderMiniMap("map_"+id,coords),50);
     }
   });
 }
 
-/* MINI MAP */
-function renderMiniMap(id,coords){
+/* MINI MAP FIX — prevent “already initialized” errors */
+function renderMiniMap(mapId,coords){
+  const container = document.getElementById(mapId);
+  container.innerHTML = ""; // Clear previous map instance safely
+
   const [lng,lat] = coords;
-  const map = L.map("map_"+id,{
+
+  const map = L.map(mapId,{
     zoomControl:false,
     attributionControl:false
   }).setView([lat,lng],13);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
+    .addTo(map);
+
   L.marker([lat,lng]).addTo(map);
 }
 
 /* REMOVE FAVORITE */
 async function removeFavorite(id){
   const token = localStorage.getItem("token");
-  const lang = localStorage.getItem("lang");
 
   if(!confirm("Remove?")) return;
 
