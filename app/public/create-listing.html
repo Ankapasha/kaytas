@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Skapa eller redigera annons – Kaytas</title>
 
+  <!-- MAP LIBRARY -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,7 +16,6 @@
       margin: 0;
     }
 
-    /* HEADER */
     header {
       background: #fff;
       padding: 15px 20px;
@@ -41,15 +44,12 @@
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-      max-width: 700px;
+      max-width: 800px;
       margin: 0 auto;
     }
 
     h2 {
-      margin-top: 0;
       margin-bottom: 20px;
-      font-size: 22px;
-      font-weight: 600;
       text-align: center;
     }
 
@@ -74,6 +74,14 @@
     .row {
       display: flex;
       gap: 12px;
+    }
+
+    #map {
+      width: 100%;
+      height: 350px;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
     }
 
     button {
@@ -116,7 +124,11 @@
 
     <input id="price" name="price" type="number" placeholder="Pris (kr)">
 
-    <input id="address" name="address" placeholder="Adress">
+    <input id="address" name="address" placeholder="Adress (exakt plats)">
+
+    <button type="button" class="btn-blue" onclick="searchAddress()">Sök adress</button>
+
+    <div id="map"></div>
 
     <input id="images" name="images" placeholder="Bild-URLer (komma-separerade)">
 
@@ -139,6 +151,9 @@
       <option value="true">Hiss: Ja</option>
     </select>
 
+    <input id="lat" type="hidden">
+    <input id="lng" type="hidden">
+
     <div class="row">
       <button type="submit" class="btn-blue">Spara</button>
       <button type="button" class="btn-grey" onclick="window.location.href='/my-listings.html'">Avbryt</button>
@@ -147,89 +162,149 @@
   </form>
 
 </main>
-</div> <!-- end container -->
+</div>
 
 <script>
-  const form = document.getElementById("listingForm");
-  const params = new URLSearchParams(window.location.search);
-  const editId = params.get("edit");
+let map, marker;
 
-  if (editId) {
-    document.getElementById("pageTitle").textContent = "Redigera annons";
-    loadExistingListing(editId);
+/* ------------------------------- */
+/*  CREATE MAP                     */
+/* ------------------------------- */
+function initMap() {
+  if (!map) {
+    map = L.map('map').setView([41.3275, 19.8187], 7); // Albanien default
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    map.on("click", async (e) => {
+      placeMarker(e.latlng.lat, e.latlng.lng);
+      await reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
   }
+  document.getElementById("map").style.display = "block";
+}
 
-  function getAuthHeader() {
-    const token = localStorage.getItem("token");
-    return token ? { "Authorization": "Bearer " + token } : {};
+/* ------------------------------- */
+/*  PLACE MARKER                   */
+/* ------------------------------- */
+function placeMarker(lat, lng) {
+  if (marker) {
+    marker.setLatLng([lat, lng]);
+  } else {
+    marker = L.marker([lat, lng]).addTo(map);
   }
+  document.getElementById("lat").value = lat;
+  document.getElementById("lng").value = lng;
+}
 
-  async function loadExistingListing(id) {
-    try {
-      const res = await fetch("/api/listings/" + id, {
-        headers: getAuthHeader()
-      });
+/* ------------------------------- */
+/*  SEARCH ADDRESS → GEOCODING     */
+/* ------------------------------- */
+async function searchAddress() {
+  const addr = document.getElementById("address").value.trim();
+  if (!addr) return alert("Skriv adress");
 
-      if (!res.ok) {
-        alert("Kunde inte ladda annons.");
-        return;
-      }
+  initMap();
 
-      const data = await res.json();
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`;
 
-      title.value = data.title || "";
-      description.value = data.description || "";
-      price.value = data.price || "";
-      address.value = data.address || "";
-      images.value = (data.images || []).join(", ");
-      type.value = data.type || "";
-      size.value = data.size || "";
-      floor.value = data.floor || "";
-      hasElevator.value = data.hasElevator ? "true" : "false";
+  const res = await fetch(url);
+  const data = await res.json();
 
-    } catch (err) {
-      alert("Fel vid laddning: " + err.message);
+  if (!data.length) return alert("Hittade ingen adress.");
+
+  const lat = data[0].lat;
+  const lng = data[0].lon;
+
+  map.setView([lat, lng], 16);
+  placeMarker(lat, lng);
+}
+
+/* ------------------------------- */
+/*  REVERSE GEOCODING              */
+/* ------------------------------- */
+async function reverseGeocode(lat, lng) {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (data?.display_name) {
+    document.getElementById("address").value = data.display_name;
+  }
+}
+
+/* ------------------------------- */
+/*  LOAD EXISTING IN EDIT MODE     */
+/* ------------------------------- */
+const params = new URLSearchParams(window.location.search);
+const editId = params.get("edit");
+
+if (editId) {
+  document.getElementById("pageTitle").textContent = "Redigera annons";
+  loadExistingListing(editId);
+}
+
+async function loadExistingListing(id) {
+  const res = await fetch("/api/listings/" + id);
+  const data = await res.json();
+
+  title.value = data.title || "";
+  description.value = data.description || "";
+  price.value = data.price || "";
+  address.value = data.address || "";
+  images.value = (data.images || []).join(", ");
+  type.value = data.type || "";
+  size.value = data.size || "";
+  floor.value = data.floor || "";
+  hasElevator.value = data.hasElevator ? "true" : "false";
+
+  if (data.location?.coordinates) {
+    const [lng, lat] = data.location.coordinates;
+    initMap();
+    map.setView([lat, lng], 16);
+    placeMarker(lat, lng);
+  }
+}
+
+/* ------------------------------- */
+/*  SUBMIT FORM                    */
+/* ------------------------------- */
+document.getElementById("listingForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    title: title.value.trim(),
+    description: description.value.trim(),
+    price: Number(price.value) || 0,
+    address: address.value.trim(),
+    images: images.value.split(",").map(s => s.trim()).filter(Boolean),
+    type: type.value,
+    size: Number(size.value) || null,
+    floor: Number(floor.value) || null,
+    hasElevator: hasElevator.value === "true",
+    location: {
+      type: "Point",
+      coordinates: [Number(lng.value), Number(lat.value)]
     }
-  }
+  };
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  const method = editId ? "PUT" : "POST";
+  const url = editId ? "/api/listings/" + editId : "/api/listings";
 
-    const payload = {
-      title: title.value.trim(),
-      description: description.value.trim(),
-      price: Number(price.value) || 0,
-      address: address.value.trim(),
-      images: images.value.split(",").map(s => s.trim()).filter(Boolean),
-      type: type.value,
-      size: Number(size.value) || null,
-      floor: Number(floor.value) || null,
-      hasElevator: hasElevator.value === "true"
-    };
-
-    const method = editId ? "PUT" : "POST";
-    const url = editId ? "/api/listings/" + editId : "/api/listings";
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: Object.assign({"Content-Type": "application/json"}, getAuthHeader()),
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const txt = await res.text();
-        alert("Kunde inte spara annons: " + txt);
-        return;
-      }
-
-      alert(editId ? "Annons uppdaterad." : "Annons skapad.");
-      window.location.href = "/my-listings.html";
-
-    } catch (err) {
-      alert("Fel: " + err.message);
-    }
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify(payload)
   });
+
+  if (!res.ok) return alert("Kunde inte spara.");
+
+  alert(editId ? "Annons uppdaterad!" : "Annons skapad!");
+  location.href = "/my-listings.html";
+});
 </script>
 
 </body>
