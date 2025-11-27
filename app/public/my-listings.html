@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mina annonser – Kaytas</title>
+  <title data-i18n="my_listings">My Listings – Kaytas</title>
+
+  <!-- MAP LIBRARY -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
     body {
@@ -13,13 +17,25 @@
       padding: 20px;
     }
 
+    /* Language selector */
+    #langBox {
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    #langSwitcher {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
     h1 {
       text-align: center;
       margin-bottom: 25px;
     }
 
     .list-container {
-      max-width: 900px;
+      max-width: 950px;
       margin: 0 auto;
     }
 
@@ -35,8 +51,8 @@
     }
 
     .listing-card img {
-      width: 120px;
-      height: 90px;
+      width: 130px;
+      height: 95px;
       object-fit: cover;
       border-radius: 6px;
       background: #ddd;
@@ -58,10 +74,19 @@
       margin-top: 4px;
     }
 
+    /* Mini map */
+    .miniMap {
+      width: 140px;
+      height: 95px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
     .listing-actions {
       display: flex;
       flex-direction: column;
       gap: 8px;
+      margin-left: 10px;
     }
 
     .listing-actions button {
@@ -111,130 +136,190 @@
 </head>
 
 <body>
-    <div class="container">
 
-<h1>Mina annonser</h1>
+<div id="langBox">
+  <select id="langSwitcher">
+    <option value="en">🇬🇧 English</option>
+    <option value="bs">🇷🇸 Serbian (Latin)</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="es">🇪🇸 Español</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="sq">🇦🇱 Shqip</option>
+  </select>
+</div>
+
+<h1 data-i18n="my_listings">My Listings</h1>
 
 <div class="list-container" id="listingsBox">
-  <div class="empty-message">Laddar...</div>
+  <div class="empty-message" data-i18n="loading">Loading...</div>
 </div>
 
 <div id="pagination"></div>
 
 <script>
-  let ALL_LISTINGS = [];
-  let CURRENT_PAGE = 1;
-  const ITEMS_PER_PAGE = 20;
+/* ──────────────────────────────────────────────── */
+/* LANGUAGE SYSTEM                                  */
+/* ──────────────────────────────────────────────── */
+const LANG = {
+  en:{my_listings:"My Listings",loading:"Loading...",none:"You have no listings yet",edit:"Edit",open:"Open"},
+  bs:{my_listings:"Moji oglasi",loading:"Učitavanje...",none:"Nemate nijedan oglas",edit:"Uredi",open:"Otvori"},
+  de:{my_listings:"Meine Anzeigen",loading:"Lade...",none:"Du hast noch keine Anzeigen",edit:"Bearbeiten",open:"Öffnen"},
+  fr:{my_listings:"Mes annonces",loading:"Chargement...",none:"Vous n'avez pas encore d'annonces",edit:"Modifier",open:"Ouvrir"},
+  es:{my_listings:"Mis anuncios",loading:"Cargando...",none:"No tienes anuncios",edit:"Editar",open:"Abrir"},
+  it:{my_listings:"I miei annunci",loading:"Caricamento...",none:"Non hai annunci",edit:"Modifica",open:"Apri"},
+  sq:{my_listings:"Njoftimet e mia",loading:"Duke u ngarkuar...",none:"Nuk keni asnjë njoftim",edit:"Përpuno",open:"Hap"}
+};
 
-  async function loadMyListings() {
-    const token = localStorage.getItem("token");
-    const box = document.getElementById("listingsBox");
+function applyLanguage(lang){
+  localStorage.setItem("lang",lang);
+  const d = LANG[lang];
 
-    if (!token) {
-      box.innerHTML = '<div class="empty-message">Du måste vara inloggad.</div>';
-      return;
-    }
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.getAttribute("data-i18n");
+    if(d[key]) el.textContent = d[key];
+  });
+}
 
-    try {
-      const res = await fetch("/api/listings/mine", {
-        headers: { "Authorization": "Bearer " + token }
-      });
+function initLanguage(){
+  let lang = localStorage.getItem("lang") || "en";
+  document.getElementById("langSwitcher").value = lang;
+  applyLanguage(lang);
 
-      if (!res.ok) {
-        box.innerHTML = '<div class="empty-message">Kunde inte ladda annonser.</div>';
-        return;
-      }
+  document.getElementById("langSwitcher").addEventListener("change",e=>{
+    applyLanguage(e.target.value);
+    renderPage();   // re-render for button text
+  });
+}
 
-      ALL_LISTINGS = await res.json();
+initLanguage();
 
-      if (ALL_LISTINGS.length === 0) {
-        box.innerHTML = '<div class="empty-message">Du har inga skapade annonser ännu.</div>';
-        return;
-      }
+/* ──────────────────────────────────────────────── */
+/*  LISTINGS LOGIC                                  */
+/* ──────────────────────────────────────────────── */
+let ALL_LISTINGS=[];
+let CURRENT_PAGE=1;
+const ITEMS_PER_PAGE=20;
 
-      CURRENT_PAGE = 1;
-      renderPage();
+async function loadMyListings(){
+  const token=localStorage.getItem("token");
+  const box=document.getElementById("listingsBox");
 
-    } catch (err) {
-      box.innerHTML = '<div class="empty-message">Serverfel.</div>';
-    }
+  if(!token){
+    box.innerHTML='<div class="empty-message">Login required</div>';
+    return;
   }
 
-  function renderPage() {
-    const box = document.getElementById("listingsBox");
-    box.innerHTML = "";
-
-    const start = (CURRENT_PAGE - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-
-    const items = ALL_LISTINGS.slice(start, end);
-
-    items.forEach(listing => {
-      const img = listing.images && listing.images.length > 0
-        ? listing.images[0]
-        : "";
-
-      const div = document.createElement("div");
-      div.className = "listing-card";
-
-      div.innerHTML = `
-        <img src="${img}" alt="">
-        <div class="listing-info">
-          <p class="listing-title">${listing.title}</p>
-          <p class="listing-meta">${listing.price} kr – ${listing.address || ""}</p>
-        </div>
-        <div class="listing-actions">
-          <button class="edit-btn" onclick="editListing('${listing._id}')">Redigera</button>
-          <button class="open-btn" onclick="openListing('${listing._id}')">Öppna</button>
-        </div>
-      `;
-
-      box.appendChild(div);
+  try{
+    const res=await fetch("/api/listings/mine",{
+      headers:{"Authorization":"Bearer "+token}
     });
 
-    renderPagination();
-  }
+    ALL_LISTINGS=await res.json();
 
-  function renderPagination() {
-    const totalPages = Math.ceil(ALL_LISTINGS.length / ITEMS_PER_PAGE);
-    const pag = document.getElementById("pagination");
-
-    if (totalPages <= 1) {
-      pag.innerHTML = "";
+    if(ALL_LISTINGS.length===0){
+      box.innerHTML=`<div class="empty-message" data-i18n="none">${LANG[localStorage.getItem("lang")].none}</div>`;
       return;
     }
 
-    let html = "";
-
-    if (CURRENT_PAGE > 1) {
-      html += `<button onclick="gotoPage(${CURRENT_PAGE - 1})">Föregående</button>`;
-    }
-
-    html += `<span>Sida ${CURRENT_PAGE} / ${totalPages}</span>`;
-
-    if (CURRENT_PAGE < totalPages) {
-      html += `<button onclick="gotoPage(${CURRENT_PAGE + 1})">Nästa</button>`;
-    }
-
-    pag.innerHTML = html;
-  }
-
-  function gotoPage(n) {
-    CURRENT_PAGE = n;
+    CURRENT_PAGE=1;
     renderPage();
+
+  }catch(err){
+    box.innerHTML='<div class="empty-message">Server error</div>';
+  }
+}
+
+function renderPage(){
+  const box=document.getElementById("listingsBox");
+  box.innerHTML="";
+  const lang=localStorage.getItem("lang");
+
+  const start=(CURRENT_PAGE-1)*ITEMS_PER_PAGE;
+  const end=start+ITEMS_PER_PAGE;
+  const items=ALL_LISTINGS.slice(start,end);
+
+  items.forEach(listing=>{
+    const img = listing.images?.[0] || "";
+    const id = listing._id;
+    const coords = listing.location?.coordinates;
+
+    const div=document.createElement("div");
+    div.className="listing-card";
+
+    div.innerHTML=`
+      <img src="${img}">
+      <div class="listing-info">
+        <p class="listing-title">${listing.title}</p>
+        <p class="listing-meta">${listing.price} kr – ${listing.address || ""}</p>
+      </div>
+
+      <!-- MINI MAP -->
+      <div class="miniMap" id="map_${id}"></div>
+
+      <div class="listing-actions">
+        <button class="edit-btn" onclick="editListing('${id}')">${LANG[lang].edit}</button>
+        <button class="open-btn" onclick="openListing('${id}')">${LANG[lang].open}</button>
+      </div>
+    `;
+
+    box.appendChild(div);
+
+    if(coords){
+      setTimeout(()=>renderMiniMap(id,coords),50);
+    }
+  });
+
+  renderPagination();
+}
+
+/* MINI MAP */
+function renderMiniMap(id,coords){
+  const [lng,lat]=coords;
+  const map = L.map("map_"+id,{
+    zoomControl:false,
+    attributionControl:false
+  }).setView([lat,lng],13);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+  L.marker([lat,lng]).addTo(map);
+}
+
+/* Pagination */
+function renderPagination(){
+  const totalPages=Math.ceil(ALL_LISTINGS.length/ITEMS_PER_PAGE);
+  const pag=document.getElementById("pagination");
+  pag.innerHTML="";
+
+  if(totalPages<=1) return;
+
+  if(CURRENT_PAGE>1){
+    pag.innerHTML+=`<button onclick="gotoPage(${CURRENT_PAGE-1})">‹</button>`;
   }
 
-  function editListing(id) {
-    window.location.href = "/create-listing.html?edit=" + id;
-  }
+  pag.innerHTML+=`<span>${CURRENT_PAGE} / ${totalPages}</span>`;
 
-  function openListing(id) {
-    window.location.href = "/listing.html?id=" + id;
+  if(CURRENT_PAGE<totalPages){
+    pag.innerHTML+=`<button onclick="gotoPage(${CURRENT_PAGE+1})">›</button>`;
   }
+}
 
-  loadMyListings();
+function gotoPage(n){
+  CURRENT_PAGE=n;
+  renderPage();
+}
+
+function editListing(id){
+  window.location.href="/create-listing.html?edit="+id;
+}
+
+function openListing(id){
+  window.location.href="/listing.html?id="+id;
+}
+
+loadMyListings();
 </script>
 
-    </div> <!-- end container -->
 </body>
 </html>
