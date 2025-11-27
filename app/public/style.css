@@ -1,3 +1,19 @@
+/* === GLOBAL LAYOUT: Idealista-style === */
+
+/* Center all page content */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+/* Make header, main, and footer follow container width */
+header, main, footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
 /* ===== BASIC RESET ===== */
 body {
     margin: 0;
