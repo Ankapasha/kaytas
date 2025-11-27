@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-i18n="my_listings">My Listings – Kaytas</title>
 
-  <!-- MAP LIBRARY -->
+  <!-- MAP -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -17,7 +17,6 @@
       padding: 20px;
     }
 
-    /* Language selector */
     #langBox {
       text-align: right;
       margin-bottom: 15px;
@@ -27,6 +26,7 @@
       padding: 6px 10px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 14px;
     }
 
     h1 {
@@ -58,23 +58,10 @@
       background: #ddd;
     }
 
-    .listing-info {
-      flex: 1;
-    }
+    .listing-info { flex: 1; }
+    .listing-title { font-size: 18px; font-weight: bold; margin: 0; }
+    .listing-meta { font-size: 14px; color: #666; margin-top: 4px; }
 
-    .listing-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin: 0;
-    }
-
-    .listing-meta {
-      font-size: 14px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    /* Mini map */
     .miniMap {
       width: 140px;
       height: 95px;
@@ -86,9 +73,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-left: 10px;
     }
-
     .listing-actions button {
       padding: 8px 12px;
       border: none;
@@ -97,14 +82,8 @@
       font-size: 14px;
     }
 
-    .edit-btn {
-      background: #1976d2;
-      color: #fff;
-    }
-
-    .open-btn {
-      background: #dddddd;
-    }
+    .edit-btn { background: #1976d2; color: #fff; }
+    .open-btn { background: #dddddd; }
 
     .empty-message {
       text-align: center;
@@ -127,16 +106,12 @@
       border-radius: 6px;
       cursor: pointer;
     }
-
-    #pagination span {
-      margin: 0 10px;
-      font-weight: bold;
-    }
   </style>
 </head>
 
 <body>
 
+<!-- LANGUAGE -->
 <div id="langBox">
   <select id="langSwitcher">
     <option value="en">🇬🇧 English</option>
@@ -158,9 +133,9 @@
 <div id="pagination"></div>
 
 <script>
-/* ──────────────────────────────────────────────── */
-/* LANGUAGE SYSTEM                                  */
-/* ──────────────────────────────────────────────── */
+/* ===========================================================
+   LANGUAGE PACKS
+=========================================================== */
 const LANG = {
   en:{my_listings:"My Listings",loading:"Loading...",none:"You have no listings yet",edit:"Edit",open:"Open"},
   bs:{my_listings:"Moji oglasi",loading:"Učitavanje...",none:"Nemate nijedan oglas",edit:"Uredi",open:"Otvori"},
@@ -175,10 +150,17 @@ function applyLanguage(lang){
   localStorage.setItem("lang",lang);
   const d = LANG[lang];
 
+  // Text
   document.querySelectorAll("[data-i18n]").forEach(el=>{
     const key = el.getAttribute("data-i18n");
     if(d[key]) el.textContent = d[key];
   });
+
+  // Title update
+  if(document.querySelector("title[data-i18n]")){
+    const key = document.querySelector("title").getAttribute("data-i18n");
+    document.title = d[key] + " – Kaytas";
+  }
 }
 
 function initLanguage(){
@@ -188,15 +170,15 @@ function initLanguage(){
 
   document.getElementById("langSwitcher").addEventListener("change",e=>{
     applyLanguage(e.target.value);
-    renderPage();   // re-render for button text
+    renderPage();
   });
 }
 
 initLanguage();
 
-/* ──────────────────────────────────────────────── */
-/*  LISTINGS LOGIC                                  */
-/* ──────────────────────────────────────────────── */
+/* ===========================================================
+   LISTINGS
+=========================================================== */
 let ALL_LISTINGS=[];
 let CURRENT_PAGE=1;
 const ITEMS_PER_PAGE=20;
@@ -218,7 +200,7 @@ async function loadMyListings(){
     ALL_LISTINGS=await res.json();
 
     if(ALL_LISTINGS.length===0){
-      box.innerHTML=`<div class="empty-message" data-i18n="none">${LANG[localStorage.getItem("lang")].none}</div>`;
+      box.innerHTML=`<div class="empty-message" data-i18n="none">${LANG[currentLang()].none}</div>`;
       return;
     }
 
@@ -230,10 +212,15 @@ async function loadMyListings(){
   }
 }
 
+function currentLang(){
+  return localStorage.getItem("lang") || "en";
+}
+
 function renderPage(){
   const box=document.getElementById("listingsBox");
   box.innerHTML="";
-  const lang=localStorage.getItem("lang");
+
+  const lang=currentLang();
 
   const start=(CURRENT_PAGE-1)*ITEMS_PER_PAGE;
   const end=start+ITEMS_PER_PAGE;
@@ -254,7 +241,6 @@ function renderPage(){
         <p class="listing-meta">${listing.price} kr – ${listing.address || ""}</p>
       </div>
 
-      <!-- MINI MAP -->
       <div class="miniMap" id="map_${id}"></div>
 
       <div class="listing-actions">
@@ -266,27 +252,32 @@ function renderPage(){
     box.appendChild(div);
 
     if(coords){
-      setTimeout(()=>renderMiniMap(id,coords),50);
+      setTimeout(()=>renderMiniMap("map_"+id,coords),50);
     }
   });
 
   renderPagination();
 }
 
-/* MINI MAP */
-function renderMiniMap(id,coords){
+/* MINI MAP RENDER */
+function renderMiniMap(mapId,coords){
   const [lng,lat]=coords;
-  const map = L.map("map_"+id,{
+
+  // Destroy previous map instance if exists
+  if (document.getElementById(mapId)._leaflet_id){
+    document.getElementById(mapId).innerHTML = "";
+  }
+
+  const map = L.map(mapId,{
     zoomControl:false,
     attributionControl:false
   }).setView([lat,lng],13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
   L.marker([lat,lng]).addTo(map);
 }
 
-/* Pagination */
+/* PAGINATION */
 function renderPagination(){
   const totalPages=Math.ceil(ALL_LISTINGS.length/ITEMS_PER_PAGE);
   const pag=document.getElementById("pagination");
