@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mina favoriter – Kaytas</title>
+  <title data-i18n="favorites">Favorites – Kaytas</title>
+
+  <!-- MAP LIBRARY -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
     body {
@@ -13,13 +17,25 @@
       padding: 20px;
     }
 
+    /* Language selector */
+    #langBox {
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    #langSwitcher {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
     h1 {
       text-align: center;
       margin-bottom: 25px;
     }
 
     .list-container {
-      max-width: 900px;
+      max-width: 950px;
       margin: 0 auto;
     }
 
@@ -58,6 +74,14 @@
       margin-top: 4px;
     }
 
+    /* Mini map */
+    .miniMap {
+      width: 140px;
+      height: 95px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
     .fav-actions {
       display: flex;
       flex-direction: column;
@@ -91,89 +115,163 @@
 </head>
 
 <body>
-    <div class="container">
 
-<h1>Mina favoriter</h1>
+<div id="langBox">
+  <select id="langSwitcher">
+    <option value="en">🇬🇧 English</option>
+    <option value="bs">🇷🇸 Serbian (Latin)</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="es">🇪🇸 Español</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="sq">🇦🇱 Shqip</option>
+  </select>
+</div>
+
+<h1 data-i18n="favorites">Favorites</h1>
 
 <div id="favoritesBox" class="list-container">
-  <div class="empty-message">Laddar...</div>
+  <div class="empty-message" data-i18n="loading">Loading...</div>
 </div>
 
 <script>
-  async function loadFavorites() {
-    const token = localStorage.getItem("token");
-    const box = document.getElementById("favoritesBox");
+/* ─────────────────────────────────────────────── */
+/* LANGUAGE SYSTEM                                 */
+/* ─────────────────────────────────────────────── */
+const LANG = {
+  en:{favorites:"Favorites",loading:"Loading...",remove:"Remove",open:"Open",none:"No favorites yet"},
+  bs:{favorites:"Favoriti",loading:"Učitavanje...",remove:"Ukloni",open:"Otvori",none:"Nema favorita"},
+  de:{favorites:"Favoriten",loading:"Lade...",remove:"Entfernen",open:"Öffnen",none:"Keine Favoriten"},
+  fr:{favorites:"Favoris",loading:"Chargement...",remove:"Retirer",open:"Ouvrir",none:"Aucun favori"},
+  es:{favorites:"Favoritos",loading:"Cargando...",remove:"Eliminar",open:"Abrir",none:"Sin favoritos"},
+  it:{favorites:"Preferiti",loading:"Caricamento...",remove:"Rimuovi",open:"Apri",none:"Nessun preferito"},
+  sq:{favorites:"Të preferuara",loading:"Duke u ngarkuar...",remove:"Hiq",open:"Hap",none:"Pa të preferuara"}
+};
 
-    if (!token) {
-      box.innerHTML = '<div class="empty-message">Du måste vara inloggad.</div>';
-      return;
-    }
+function applyLanguage(lang){
+  localStorage.setItem("lang",lang);
+  const d = LANG[lang];
 
-    const res = await fetch("/api/favorites", {
-      headers: { "Authorization": "Bearer " + token }
-    });
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.getAttribute("data-i18n");
+    if(d[key]) el.textContent = d[key];
+  });
+}
 
-    if (!res.ok) {
-      box.innerHTML = '<div class="empty-message">Kunde inte hämta favoriter.</div>';
-      return;
-    }
+function initLanguage(){
+  let lang = localStorage.getItem("lang") || "en";
+  document.getElementById("langSwitcher").value = lang;
+  applyLanguage(lang);
 
-    const favs = await res.json();
+  document.getElementById("langSwitcher").addEventListener("change",e=>{
+    applyLanguage(e.target.value);
+    loadFavorites(); // rerender for button text
+  });
+}
 
-    if (!Array.isArray(favs) || favs.length === 0) {
-      box.innerHTML = '<div class="empty-message">Inga favoriter ännu.</div>';
-      return;
-    }
+initLanguage();
 
-    box.innerHTML = "";
+/* ─────────────────────────────────────────────── */
+/* FAVORITES LOGIC                                 */
+/* ─────────────────────────────────────────────── */
+async function loadFavorites() {
+  const lang = localStorage.getItem("lang");
+  const token = localStorage.getItem("token");
+  const box = document.getElementById("favoritesBox");
 
-    favs.forEach(item => {
-      const img = (item.images && item.images.length > 0)
-        ? item.images[0]
-        : "";
-
-      const card = document.createElement("div");
-      card.className = "fav-card";
-
-      card.innerHTML = `
-        <img src="${img}" alt="">
-        <div class="fav-info">
-          <p class="fav-title">${item.title}</p>
-          <p class="fav-meta">${item.price} kr – ${item.address || ''}</p>
-        </div>
-        <div class="fav-actions">
-          <button class="open-btn" onclick="openListing('${item._id}')">Öppna</button>
-          <button class="remove-btn" onclick="removeFavorite('${item._id}')">Ta bort</button>
-        </div>
-      `;
-
-      box.appendChild(card);
-    });
+  if (!token) {
+    box.innerHTML = '<div class="empty-message">Login required</div>';
+    return;
   }
 
-  async function removeFavorite(id) {
-    const token = localStorage.getItem("token");
-    if (!confirm("Vill du ta bort favoriten?")) return;
+  const res = await fetch("/api/favorites", {
+    headers: { "Authorization": "Bearer " + token }
+  });
 
-    const res = await fetch("/api/favorites/" + id, {
-      method: "DELETE",
-      headers: { "Authorization": "Bearer " + token }
-    });
+  if (!res.ok) {
+    box.innerHTML = '<div class="empty-message">Could not load favorites</div>';
+    return;
+  }
 
-    if (res.ok) {
-      loadFavorites();
-    } else {
-      alert("Kunde inte ta bort favorit.");
+  const favs = await res.json();
+
+  if (!Array.isArray(favs) || favs.length === 0) {
+    box.innerHTML = `<div class="empty-message" data-i18n="none">${LANG[lang].none}</div>`;
+    return;
+  }
+
+  box.innerHTML = "";
+
+  favs.forEach(item => {
+    const img = (item.images && item.images.length > 0) ? item.images[0] : "";
+    const id = item._id;
+    const coords = item.location?.coordinates;
+
+    const card = document.createElement("div");
+    card.className = "fav-card";
+
+    card.innerHTML = `
+      <img src="${img}">
+      <div class="fav-info">
+        <p class="fav-title">${item.title}</p>
+        <p class="fav-meta">${item.price} kr – ${item.address || ''}</p>
+      </div>
+
+      <!-- Mini map -->
+      <div class="miniMap" id="map_${id}"></div>
+
+      <div class="fav-actions">
+        <button class="open-btn" onclick="openListing('${id}')">${LANG[lang].open}</button>
+        <button class="remove-btn" onclick="removeFavorite('${id}')">${LANG[lang].remove}</button>
+      </div>
+    `;
+
+    box.appendChild(card);
+
+    if(coords){
+      setTimeout(()=>renderMiniMap(id,coords),50);
     }
-  }
+  });
+}
 
-  function openListing(id) {
-    window.location.href = "/listing.html?id=" + id;
-  }
+/* MINI MAP */
+function renderMiniMap(id,coords){
+  const [lng,lat] = coords;
+  const map = L.map("map_"+id,{
+    zoomControl:false,
+    attributionControl:false
+  }).setView([lat,lng],13);
 
-  loadFavorites();
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+  L.marker([lat,lng]).addTo(map);
+}
+
+/* REMOVE FAVORITE */
+async function removeFavorite(id){
+  const token = localStorage.getItem("token");
+  const lang = localStorage.getItem("lang");
+
+  if(!confirm("Remove?")) return;
+
+  const res = await fetch("/api/favorites/" + id,{
+    method:"DELETE",
+    headers:{"Authorization":"Bearer "+token}
+  });
+
+  if(res.ok){
+    loadFavorites();
+  } else {
+    alert("Could not remove");
+  }
+}
+
+/* OPEN LISTING */
+function openListing(id){
+  window.location.href = "/listing.html?id=" + id;
+}
+
+loadFavorites();
 </script>
 
-    </div> <!-- end container -->
 </body>
 </html>
