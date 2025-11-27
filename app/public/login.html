@@ -1,15 +1,25 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logga in – Kaytas</title>
+  <title data-i18n="title">Login – Kaytas</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f6f8;
+    body { margin: 0; font-family: Arial, sans-serif; background: #f5f6f8; }
+
+    /* Language selector */
+    #langBox {
+      text-align: right;
+      padding: 10px 14px 0 14px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    #langSwitcher {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
     }
 
     header {
@@ -23,11 +33,7 @@
       margin: 0 auto;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 22px;
-      cursor: pointer;
-    }
+    header h1 { margin: 0; font-size: 22px; cursor: pointer; }
 
     #backHome {
       background: #ddd;
@@ -54,10 +60,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 25px;
-    }
+    h2 { text-align: center; margin-bottom: 25px; }
 
     .tabs {
       display: flex;
@@ -76,10 +79,7 @@
       background: #e8e8e8;
     }
 
-    .tab-active {
-      background: #1976d2;
-      color: #fff;
-    }
+    .tab-active { background: #1976d2; color: #fff; }
 
     form {
       display: flex;
@@ -105,15 +105,12 @@
       font-weight: 600;
     }
 
-    #registerSubmit {
-      background: #28a745 !important;
-    }
+    #registerSubmit { background: #28a745 !important; }
 
     .notice {
       color: #b30000;
       font-size: 14px;
       text-align: center;
-      margin-top: 5px;
       min-height: 20px;
     }
 
@@ -124,40 +121,53 @@
       margin-top: 40px;
     }
   </style>
-
 </head>
+
 <body>
+
+<!-- LANGUAGE DROPDOWN -->
+<div id="langBox">
+  <select id="langSwitcher">
+    <option value="en">🇬🇧 English</option>
+    <option value="bs">🇷🇸 Serbian (Latin)</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="es">🇪🇸 Español</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="sq">🇦🇱 Shqip</option>
+  </select>
+</div>
 
 <header>
   <h1 onclick="location.href='/'">Kaytas</h1>
-  <button id="backHome">Tillbaka</button>
+  <button id="backHome" data-i18n="back">Back</button>
 </header>
 
 <div class="container">
   <div class="card">
 
-    <h2>Logga in / Registrera</h2>
+    <h2 data-i18n="login_register">Login / Register</h2>
 
     <!-- Tabs -->
     <div class="tabs">
-      <button id="loginTab" class="tab-btn tab-active">Logga in</button>
-      <button id="registerTab" class="tab-btn">Registrera</button>
+      <button id="loginTab" class="tab-btn tab-active" data-i18n="login">Login</button>
+      <button id="registerTab" class="tab-btn" data-i18n="register">Register</button>
     </div>
 
     <!-- LOGIN FORM -->
     <form id="loginForm">
-      <input type="email" id="loginEmail" placeholder="E-post" required>
-      <input type="password" id="loginPassword" placeholder="Lösenord" required>
-      <button type="submit">Logga in</button>
+      <input type="email" id="loginEmail" data-i18n-placeholder="email" required>
+      <input type="password" id="loginPassword" data-i18n-placeholder="password" required>
+      <button type="submit" data-i18n="login_btn">Login</button>
       <p id="loginMsg" class="notice"></p>
     </form>
 
     <!-- REGISTER FORM -->
     <form id="registerForm" style="display:none;">
-      <input type="text" id="regName" placeholder="Namn" required>
-      <input type="email" id="regEmail" placeholder="E-post" required>
-      <input type="password" id="regPassword" placeholder="Lösenord" required>
-      <button id="registerSubmit" type="submit">Registrera</button>
+      <input type="text" id="regName" data-i18n-placeholder="name" required>
+      <input type="email" id="regEmail" data-i18n-placeholder="email" required>
+      <input type="password" id="regPassword" data-i18n-placeholder="password" required>
+      <button id="registerSubmit" type="submit" data-i18n="register_btn">Register</button>
       <p id="registerMsg" class="notice"></p>
     </form>
 
@@ -169,17 +179,163 @@
 </footer>
 
 <script>
-/* Redirect goal */
+/* -------------------------------------------
+   LANGUAGE PACKS
+-------------------------------------------- */
+const LANG = {
+  en: {
+    title: "Login – Kaytas",
+    back: "Back",
+    login_register: "Login / Register",
+    login: "Login",
+    register: "Register",
+    email: "Email",
+    password: "Password",
+    name: "Name",
+    login_btn: "Login",
+    register_btn: "Register",
+    wrong: "Incorrect details.",
+    success_login: "Login successful!",
+    success_register: "Registration successful!",
+    server_error: "Server error."
+  },
+  bs: {
+    title: "Prijava – Kaytas",
+    back: "Nazad",
+    login_register: "Prijava / Registracija",
+    login: "Prijava",
+    register: "Registracija",
+    email: "Email",
+    password: "Lozinka",
+    name: "Ime",
+    login_btn: "Prijavi se",
+    register_btn: "Registruj se",
+    wrong: "Pogrešni podaci.",
+    success_login: "Uspješna prijava!",
+    success_register: "Registracija uspješna!",
+    server_error: "Serverska greška."
+  },
+  de: {
+    title: "Login – Kaytas",
+    back: "Zurück",
+    login_register: "Login / Registrieren",
+    login: "Login",
+    register: "Registrieren",
+    email: "E-Mail",
+    password: "Passwort",
+    name: "Name",
+    login_btn: "Login",
+    register_btn: "Registrieren",
+    wrong: "Falsche Daten.",
+    success_login: "Login erfolgreich!",
+    success_register: "Registrierung erfolgreich!",
+    server_error: "Serverfehler."
+  },
+  fr: {
+    title: "Connexion – Kaytas",
+    back: "Retour",
+    login_register: "Connexion / Inscription",
+    login: "Connexion",
+    register: "Inscription",
+    email: "Email",
+    password: "Mot de passe",
+    name: "Nom",
+    login_btn: "Connexion",
+    register_btn: "S'inscrire",
+    wrong: "Informations incorrectes.",
+    success_login: "Connexion réussie!",
+    success_register: "Inscription réussie!",
+    server_error: "Erreur serveur."
+  },
+  es: {
+    title: "Iniciar Sesión – Kaytas",
+    back: "Atrás",
+    login_register: "Iniciar sesión / Registrarse",
+    login: "Iniciar sesión",
+    register: "Registrar",
+    email: "Correo",
+    password: "Contraseña",
+    name: "Nombre",
+    login_btn: "Entrar",
+    register_btn: "Registrar",
+    wrong: "Datos incorrectos.",
+    success_login: "¡Inicio exitoso!",
+    success_register: "¡Registro exitoso!",
+    server_error: "Error del servidor."
+  },
+  it: {
+    title: "Accesso – Kaytas",
+    back: "Indietro",
+    login_register: "Accedi / Registrati",
+    login: "Accedi",
+    register: "Registrati",
+    email: "Email",
+    password: "Password",
+    name: "Nome",
+    login_btn: "Accedi",
+    register_btn: "Registrati",
+    wrong: "Dati errati.",
+    success_login: "Accesso riuscito!",
+    success_register: "Registrazione riuscita!",
+    server_error: "Errore del server."
+  },
+  sq: {
+    title: "Hyrja – Kaytas",
+    back: "Kthehu",
+    login_register: "Hyr / Regjistrohu",
+    login: "Hyr",
+    register: "Regjistrohu",
+    email: "Email",
+    password: "Fjalëkalimi",
+    name: "Emri",
+    login_btn: "Hyr",
+    register_btn: "Regjistrohu",
+    wrong: "Të dhëna të pasakta.",
+    success_login: "Hyrje me sukses!",
+    success_register: "Regjistrim i suksesshëm!",
+    server_error: "Gabim serveri."
+  }
+};
+
+function currentLang() {
+  return localStorage.getItem("lang") || "en";
+}
+
+function applyLanguage(lang) {
+  localStorage.setItem("lang", lang);
+  const dict = LANG[lang];
+
+  document.title = dict.title;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    el.textContent = dict[key] || "";
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    el.placeholder = dict[key] || "";
+  });
+}
+
+function initLanguage() {
+  const saved = currentLang();
+  document.getElementById("langSwitcher").value = saved;
+  document.getElementById("langSwitcher").addEventListener("change", e => {
+    applyLanguage(e.target.value);
+  });
+  applyLanguage(saved);
+}
+
+initLanguage();
+
+/* -------------------------------------------
+   AUTH LOGIC
+-------------------------------------------- */
+
 const params = new URLSearchParams(window.location.search);
 const redirectUrl = params.get("redirect") || "/dashboard.html";
 
-/* Elements */
-const loginTab = document.getElementById('loginTab');
-const registerTab = document.getElementById('registerTab');
-const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
-
-/* Tabs logic */
 loginTab.onclick = () => {
   loginTab.classList.add("tab-active");
   registerTab.classList.remove("tab-active");
@@ -194,68 +350,57 @@ registerTab.onclick = () => {
   registerForm.style.display = "flex";
 };
 
-document.getElementById('backHome').onclick = () => {
-  window.location.href = '/';
+document.getElementById("backHome").onclick = () => {
+  window.location.href = "/";
 };
 
-/* LOGIN */
-loginForm.addEventListener('submit', async e => {
+loginForm.addEventListener("submit", async e => {
   e.preventDefault();
-
-  const email = loginEmail.value.trim();
-  const password = loginPassword.value.trim();
+  const dict = LANG[currentLang()];
 
   try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: loginEmail.value, password: loginPassword.value })
     });
 
     const data = await res.json();
-
-    if (!res.ok) {
-      loginMsg.textContent = data.error || "Fel uppgifter.";
-      return;
-    }
+    if (!res.ok) return loginMsg.textContent = dict.wrong;
 
     localStorage.setItem("token", data.token);
-    loginMsg.textContent = "Inloggning lyckades!";
+    loginMsg.textContent = dict.success_login;
     setTimeout(() => window.location.href = redirectUrl, 500);
 
   } catch {
-    loginMsg.textContent = "Serverfel.";
+    loginMsg.textContent = dict.server_error;
   }
 });
 
-/* REGISTER */
-registerForm.addEventListener('submit', async e => {
+registerForm.addEventListener("submit", async e => {
   e.preventDefault();
-
-  const name = regName.value.trim();
-  const email = regEmail.value.trim();
-  const password = regPassword.value.trim();
+  const dict = LANG[currentLang()];
 
   try {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password })
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: regName.value,
+        email: regEmail.value,
+        password: regPassword.value
+      })
     });
 
     const data = await res.json();
-
-    if (!res.ok) {
-      registerMsg.textContent = data.error || "Fel vid registrering.";
-      return;
-    }
+    if (!res.ok) return registerMsg.textContent = dict.wrong;
 
     localStorage.setItem("token", data.token);
-    registerMsg.textContent = "Registrering lyckades!";
+    registerMsg.textContent = dict.success_register;
     setTimeout(() => window.location.href = redirectUrl, 500);
 
   } catch {
-    registerMsg.textContent = "Serverfel.";
+    registerMsg.textContent = dict.server_error;
   }
 });
 </script>
