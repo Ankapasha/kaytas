@@ -1,269 +1,320 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mina konversationer – Kaytas</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mina konversationer – Kaytas</title>
+  <link rel="stylesheet" href="style.css">
 
-    <style>
-        body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f8; }
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background:#f5f6f8; }
 
-        /* Layout */
-        .chat-wrapper {
-            display: flex;
-            height: calc(100vh - 60px);
-            overflow: hidden;
-        }
+    /* GLOBAL WRAPPER */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
 
-        /* Left column – conversation list */
-        .chat-list {
-            width: 32%;
-            background: #fff;
-            border-right: 1px solid #e5e5e5;
-            overflow-y: auto;
-        }
+    /* HEADER ALIGNMENT */
+    header {
+      background:#fff;
+      padding:15px 20px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.05);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
 
-        .chat-list-item {
-            padding: 14px;
-            display: flex;
-            gap: 10px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-        }
+    header .logo {
+      font-size:22px;
+      font-weight:bold;
+      cursor:pointer;
+    }
 
-        .chat-list-item:hover { background: #f7f9fc; }
-        .chat-list-item.active { background: #e8f0fe; }
+    header a {
+      margin-left:18px;
+      text-decoration:none;
+      color:#333;
+      font-size:15px;
+    }
 
-        .avatar {
-            width: 45px;
-            height: 45px;
-            background: #cfd8dc;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-        }
+    /* CHAT LAYOUT */
+    .chat-wrapper {
+      display:flex;
+      gap:18px;
+      margin-top:20px;
+      height: calc(100vh - 110px);
+      min-height:500px;
+    }
 
-        .chat-text { flex: 1; }
-        .chat-text .name { font-weight: bold; }
-        .chat-text .message-preview { font-size: 13px; color: #777; }
-        .chat-text .ad-title { font-size: 12px; color: #1976d2; }
+    /* LEFT PANEL – LIST */
+    .chat-list {
+      width:32%;
+      background:#fff;
+      border-radius:10px;
+      overflow-y:auto;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    }
 
-        /* Right column – chat conversation */
-        .chat-box {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
+    .chat-item {
+      padding:14px;
+      display:flex;
+      gap:12px;
+      border-bottom:1px solid #f0f0f0;
+      cursor:pointer;
+      align-items:center;
+    }
 
-        .chat-header {
-            background: #fff;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #e5e5e5;
-        }
+    .chat-item:hover { background:#f7f9fc; }
+    .chat-item.active { background:#e8f0ff; }
 
-        .chat-header h3 { margin: 0; font-size: 18px; }
+    .avatar {
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:#d0d7df;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:bold;
+      color:#444;
+    }
 
-        .messages {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f4f6f8;
-        }
+    .chat-meta { flex:1; min-width:0; }
+    .chat-name { font-weight:bold; font-size:15px; }
+    .chat-preview { font-size:13px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chat-ad { font-size:12px; color:#1976d2; }
 
-        .bubble {
-            max-width: 60%;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
+    /* RIGHT PANEL */
+    .chat-box {
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      background:#fff;
+      border-radius:10px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    }
 
-        .me { background: #1976d2; color: #fff; margin-left: auto; }
-        .them { background: #fff; border: 1px solid #ddd; }
+    .chat-header {
+      padding:14px 18px;
+      border-bottom:1px solid #eee;
+      font-size:18px;
+      font-weight:bold;
+    }
 
-        /* Chat input */
-        .chat-input {
-            padding: 14px;
-            background: #fff;
-            border-top: 1px solid #e5e5e5;
-            display: flex;
-            gap: 10px;
-        }
+    .messages {
+      flex:1;
+      overflow-y:auto;
+      padding:20px;
+      background:linear-gradient(#fbfbfd,#f5f6f8);
+    }
 
-        .chat-input input {
-            flex-grow: 1;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
+    .bubble {
+      max-width:65%;
+      padding:12px;
+      border-radius:12px;
+      margin-bottom:10px;
+      font-size:14px;
+      line-height:1.4;
+    }
 
-        .chat-input button {
-            padding: 10px 18px;
-            background: #1976d2;
-            border: none;
-            color: #fff;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+    .me {
+      margin-left:auto;
+      background:#1976d2;
+      color:#fff;
+      border-bottom-right-radius:6px;
+    }
 
-        @media(max-width: 900px) {
-            .chat-wrapper { flex-direction: column; }
-            .chat-list { width: 100%; height: 40%; }
-            .chat-box { height: 60%; }
-        }
-    </style>
+    .them {
+      background:#fff;
+      border:1px solid #ddd;
+      border-bottom-left-radius:6px;
+    }
+
+    /* INPUT BAR */
+    .chat-input {
+      padding:12px;
+      display:flex;
+      gap:10px;
+      border-top:1px solid #eee;
+    }
+
+    .chat-input input {
+      flex:1;
+      padding:10px;
+      border-radius:6px;
+      border:1px solid #ccc;
+    }
+
+    .chat-input button {
+      padding:10px 16px;
+      background:#1976d2;
+      color:#fff;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    @media(max-width:900px) {
+      .chat-wrapper { flex-direction:column; }
+      .chat-list { width:100%; height:45%; }
+      .chat-box { height:55%; }
+    }
+  </style>
 </head>
 
 <body>
 
-<header class="header">
-    <div class="logo">Kaytas</div>
-    <nav class="nav">
-        <a href="/">Home</a>
-        <a href="/favorites.html">Favorites</a>
-        <a href="/conversations.html" class="active">Messages</a>
-    </nav>
+<header>
+  <div class="logo" onclick="location.href='/'">Kaytas</div>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/favorites.html">Favorites</a>
+    <a href="/chat.html" class="active">Messages</a>
+  </nav>
 </header>
 
-<div class="chat-wrapper">
+<div class="container">
 
-    <!-- LEFT COLUMN -->
+  <div class="chat-wrapper">
+
+    <!-- LEFT SIDE -->
     <div class="chat-list" id="conversationList">
-        <p style="padding: 20px;">Laddar konversationer...</p>
+      <p style="padding:18px;color:#777;">Laddar konversationer...</p>
     </div>
 
-    <!-- RIGHT COLUMN -->
+    <!-- RIGHT SIDE -->
     <div class="chat-box">
-        <div class="chat-header">
-            <h3 id="chatHeader">Välj en konversation</h3>
-        </div>
 
-        <div class="messages" id="messagesBox">
-            <p style="color:#777;">Ingen konversation vald.</p>
-        </div>
+      <div class="chat-header" id="chatHeader">
+        Välj en konversation
+      </div>
 
-        <div class="chat-input">
-            <input id="messageInput" type="text" placeholder="Ask the advertiser...">
-            <button id="sendBtn">Send</button>
-        </div>
+      <div class="messages" id="messagesBox">
+        <p style="color:#777;">Ingen konversation vald.</p>
+      </div>
+
+      <div class="chat-input">
+        <input id="messageInput" type="text" placeholder="Skriv ett meddelande…">
+        <button id="sendBtn">Skicka</button>
+      </div>
+
     </div>
+
+  </div>
 
 </div>
 
 <script>
-    let selectedUserId = null;
-    let selectedAdId = null;
-    let lastName = "";
-    let lastAdTitle = "";
+  let selectedUser = null;
+  let selectedAd = null;
+  let selectedName = "";
+  let selectedAdTitle = "";
 
-    let token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    if (!token) {
-        alert("Du måste vara inloggad för att se dina konversationer.");
-        window.location.href = "/login.html";
+  if (!token) {
+    window.location.href = "/login.html?redirect=/chat.html";
+  }
+
+  function auth() {
+    return { "Authorization": "Bearer " + token };
+  }
+
+  /* ===== LOAD CONVERSATIONS ===== */
+  async function loadConversations() {
+    const res = await fetch("/api/messages/conversations", { headers: auth() });
+    const convos = await res.json();
+    renderConversations(convos);
+  }
+
+  function renderConversations(list) {
+    const box = document.getElementById("conversationList");
+
+    if (!list || list.length === 0) {
+      box.innerHTML = "<p style='padding:20px;color:#777;'>Inga konversationer.</p>";
+      return;
     }
 
-    // ===================== FETCH CONVERSATIONS =====================
-    async function loadConversations() {
-        const res = await fetch("/api/messages/conversations", {
-            headers: { "Authorization": "Bearer " + token }
-        });
+    box.innerHTML = "";
 
-        const convos = await res.json();
-        const list = document.getElementById("conversationList");
+    list.forEach(c => {
+      const other = c._id.otherUser;
+      const ad = c.adId;
 
-        if (!convos || convos.length === 0) {
-            list.innerHTML = "<p style='padding:20px;'>Inga konversationer.</p>";
-            return;
-        }
+      const item = document.createElement("div");
+      item.className = "chat-item";
+      item.onclick = () => openConv(other._id, ad._id, other.name, ad.title);
 
-        list.innerHTML = "";
+      item.innerHTML = `
+        <div class="avatar">${(other.name || "?").charAt(0)}</div>
+        <div class="chat-meta">
+          <div class="chat-name">${other.name}</div>
+          <div class="chat-preview">${c.lastMessage || "No messages yet"}</div>
+          <div class="chat-ad">${ad.title}</div>
+        </div>
+      `;
 
-        convos.forEach(c => {
-            const other = c._id.otherUser;
-            const ad = c.adId;
+      box.appendChild(item);
+    });
+  }
 
-            const item = document.createElement("div");
-            item.className = "chat-list-item";
-            item.onclick = () => openConversation(other._id, ad._id, other.name, ad.title);
+  /* ===== OPEN CONVERSATION ===== */
+  async function openConv(userId, adId, name, adTitle) {
+    selectedUser = userId;
+    selectedAd = adId;
+    selectedName = name;
+    selectedAdTitle = adTitle;
 
-            item.innerHTML = `
-                <div class="avatar">${(other.name || "?").charAt(0)}</div>
-                <div class="chat-text">
-                    <div class="name">${other.name}</div>
-                    <div class="message-preview">${c.lastMessage || "No messages yet"}</div>
-                    <div class="ad-title">${ad.title}</div>
-                </div>
-            `;
-            list.appendChild(item);
-        });
-    }
+    document.getElementById("chatHeader").textContent = `${name} – ${adTitle}`;
 
-    // ===================== OPEN CONVERSATION =====================
-    async function openConversation(userId, adId, name, adTitle) {
-        selectedUserId = userId;
-        selectedAdId = adId;
+    const res = await fetch(`/api/messages/thread/${userId}/${adId}`, { headers: auth() });
+    const msgs = await res.json();
 
-        lastName = name;
-        lastAdTitle = adTitle;
+    const box = document.getElementById("messagesBox");
+    box.innerHTML = "";
 
-        document.getElementById("chatHeader").textContent = name + " – " + adTitle;
+    msgs.forEach(m => {
+      const sender = typeof m.sender === "string" ? m.sender : m.sender._id;
+      const me = sender === getMyId();
 
-        const res = await fetch(`/api/messages/thread/${userId}/${adId}`, {
-            headers: { "Authorization": "Bearer " + token }
-        });
+      const div = document.createElement("div");
+      div.className = `bubble ${me ? "me" : "them"}`;
+      div.textContent = m.content;
+      box.appendChild(div);
+    });
 
-        const msgs = await res.json();
-        const box = document.getElementById("messagesBox");
+    box.scrollTop = box.scrollHeight;
+  }
 
-        box.innerHTML = "";
+  /* SEND */
+  document.getElementById("sendBtn").onclick = send;
 
-        msgs.forEach(m => {
-            const senderId = typeof m.sender === "string" ? m.sender : m.sender._id;
+  async function send() {
+    const text = document.getElementById("messageInput").value.trim();
+    if (!text || !selectedUser) return;
 
-            const div = document.createElement("div");
-            div.className = "bubble " + (senderId === getUserId() ? "me" : "them");
-            div.textContent = m.content;
-            box.appendChild(div);
-        });
+    await fetch("/api/messages/send", {
+      method:"POST",
+      headers: { ...auth(), "Content-Type":"application/json" },
+      body: JSON.stringify({ receiverId: selectedUser, adId: selectedAd, content:text })
+    });
 
-        box.scrollTop = box.scrollHeight;
-    }
+    document.getElementById("messageInput").value = "";
+    openConv(selectedUser, selectedAd, selectedName, selectedAdTitle);
+  }
 
-    function getUserId() {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.id;
-    }
+  function getMyId() {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.id;
+  }
 
-    // ===================== SEND MESSAGE =====================
-    document.getElementById("sendBtn").onclick = async () => {
-        const text = document.getElementById("messageInput").value.trim();
-        if (!text || !selectedUserId) return;
-
-        await fetch("/api/messages/send", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + token,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                receiverId: selectedUserId,
-                adId: selectedAdId,
-                content: text
-            })
-        });
-
-        document.getElementById("messageInput").value = "";
-
-        openConversation(selectedUserId, selectedAdId, lastName, lastAdTitle);
-    };
-
-    loadConversations();
+  loadConversations();
 </script>
 
 </body>
