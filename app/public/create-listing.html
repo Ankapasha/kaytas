@@ -1,86 +1,153 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Skapa eller redigera annons – Kaytas</title>
 
   <style>
-    body { font-family: Arial; margin: 16px; background:#f5f5f5; }
-    h1 { margin-bottom: 10px; }
-
-    form {
-      max-width:760px;
-      background:#fff;
-      padding:20px;
-      border-radius:8px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.1);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+      margin: 0;
     }
 
-    input,textarea,select {
-      padding:10px;
-      border:1px solid #ccc;
-      border-radius:6px;
-      font-size:15px;
+    /* HEADER */
+    header {
+      background: #fff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+
+    main {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    input, textarea, select {
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      width: 100%;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
     }
 
     button {
-      padding:10px 14px;
-      border-radius:8px;
-      border:none;
-      cursor:pointer;
-      font-size:15px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
     }
 
-    .row { display:flex; gap:10px; }
-    .btn-blue { background:#1976d2; color:white; }
-    .btn-grey { background:#ddd; }
+    .btn-blue {
+      background: #1976d2;
+      color: #fff;
+    }
+
+    .btn-grey {
+      background: #ddd;
+      color: #333;
+    }
   </style>
 </head>
+
 <body>
 
-<h1 id="pageTitle">Skapa annons</h1>
+<header>
+  <h1 onclick="location.href='/'">Kaytas</h1>
+</header>
 
-<form id="listingForm">
+<div class="container">
+<main>
 
-  <input id="title" name="title" placeholder="Rubrik" required />
+  <h2 id="pageTitle">Skapa annons</h2>
 
-  <textarea id="description" name="description" placeholder="Beskrivning" rows="5"></textarea>
+  <form id="listingForm">
 
-  <input id="price" name="price" type="number" placeholder="Pris (kr)" />
+    <input id="title" name="title" placeholder="Rubrik" required>
 
-  <input id="address" name="address" placeholder="Adress" />
+    <textarea id="description" name="description" placeholder="Beskrivning" rows="5"></textarea>
 
-  <input id="images" name="images" placeholder="Bild-URLer (komma-separerade)" />
+    <input id="price" name="price" type="number" placeholder="Pris (kr)">
 
-  <select id="type" name="type">
-    <option value="">Välj typ</option>
-    <option value="Lägenhet">Lägenhet</option>
-    <option value="Hus">Hus</option>
-    <option value="Villa">Villa</option>
-    <option value="Garage">Garage</option>
-    <option value="Mark">Mark</option>
-  </select>
+    <input id="address" name="address" placeholder="Adress">
 
-  <div class="row">
-    <input id="size" name="size" type="number" placeholder="Storlek m²" />
-    <input id="floor" name="floor" type="number" placeholder="Våning" />
-  </div>
+    <input id="images" name="images" placeholder="Bild-URLer (komma-separerade)">
 
-  <select id="hasElevator" name="hasElevator">
-    <option value="false">Hiss: Nej</option>
-    <option value="true">Hiss: Ja</option>
-  </select>
+    <select id="type" name="type">
+      <option value="">Välj typ</option>
+      <option value="Lägenhet">Lägenhet</option>
+      <option value="Hus">Hus</option>
+      <option value="Villa">Villa</option>
+      <option value="Garage">Garage</option>
+      <option value="Mark">Mark</option>
+    </select>
 
-  <div class="row">
-    <button type="submit" class="btn-blue">Spara</button>
-    <button type="button" class="btn-grey" onclick="window.location.href='/my-listings.html'">Avbryt</button>
-  </div>
+    <div class="row">
+      <input id="size" name="size" type="number" placeholder="Storlek m²">
+      <input id="floor" name="floor" type="number" placeholder="Våning">
+    </div>
 
-</form>
+    <select id="hasElevator" name="hasElevator">
+      <option value="false">Hiss: Nej</option>
+      <option value="true">Hiss: Ja</option>
+    </select>
+
+    <div class="row">
+      <button type="submit" class="btn-blue">Spara</button>
+      <button type="button" class="btn-grey" onclick="window.location.href='/my-listings.html'">Avbryt</button>
+    </div>
+
+  </form>
+
+</main>
+</div> <!-- end container -->
 
 <script>
   const form = document.getElementById("listingForm");
@@ -110,15 +177,15 @@
 
       const data = await res.json();
 
-      document.getElementById("title").value = data.title || "";
-      document.getElementById("description").value = data.description || "";
-      document.getElementById("price").value = data.price || "";
-      document.getElementById("address").value = data.address || "";
-      document.getElementById("images").value = (data.images || []).join(", ");
-      document.getElementById("type").value = data.type || "";
-      document.getElementById("size").value = data.size || "";
-      document.getElementById("floor").value = data.floor || "";
-      document.getElementById("hasElevator").value = data.hasElevator ? "true" : "false";
+      title.value = data.title || "";
+      description.value = data.description || "";
+      price.value = data.price || "";
+      address.value = data.address || "";
+      images.value = (data.images || []).join(", ");
+      type.value = data.type || "";
+      size.value = data.size || "";
+      floor.value = data.floor || "";
+      hasElevator.value = data.hasElevator ? "true" : "false";
 
     } catch (err) {
       alert("Fel vid laddning: " + err.message);
@@ -145,7 +212,7 @@
 
     try {
       const res = await fetch(url, {
-        method: method,
+        method,
         headers: Object.assign({"Content-Type": "application/json"}, getAuthHeader()),
         body: JSON.stringify(payload)
       });
