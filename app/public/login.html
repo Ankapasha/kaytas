@@ -3,31 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logga in / Registrera – Kaytas</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Logga in â€“ Kaytas</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+    }
+
+    header {
+      background: #fff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    #backHome {
+      background: #ddd;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .card {
+      background: #fff;
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      font-weight: 600;
+      background: #e8e8e8;
+    }
+
+    .tab-active {
+      background: #1976d2;
+      color: #fff;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input {
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    button[type="submit"] {
+      padding: 12px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    #registerSubmit {
+      background: #28a745 !important;
+    }
+
+    .notice {
+      color: #b30000;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 5px;
+      min-height: 20px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #666;
+      margin-top: 40px;
+    }
+  </style>
+
 </head>
 <body>
 
 <header>
-  <h1>Kaytas</h1>
+  <h1 onclick="location.href='/'">Kaytas</h1>
   <button id="backHome">Tillbaka</button>
 </header>
 
-<main>
-  <h2>Logga in / Registrera</h2>
+<div class="container">
+  <div class="card">
 
-  <div style="max-width:400px; margin:auto;">
+    <h2>Logga in / Registrera</h2>
 
     <!-- Tabs -->
-    <div id="formTabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
-      <button id="loginTab" class="primary">Logga in</button>
-      <button id="registerTab" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer;">Registrera</button>
+    <div class="tabs">
+      <button id="loginTab" class="tab-btn tab-active">Logga in</button>
+      <button id="registerTab" class="tab-btn">Registrera</button>
     </div>
 
     <!-- LOGIN FORM -->
     <form id="loginForm">
       <input type="email" id="loginEmail" placeholder="E-post" required>
-      <input type="password" id="loginPassword" placeholder="Lösenord" required>
+      <input type="password" id="loginPassword" placeholder="LÃ¶senord" required>
       <button type="submit">Logga in</button>
       <p id="loginMsg" class="notice"></p>
     </form>
@@ -36,46 +156,50 @@
     <form id="registerForm" style="display:none;">
       <input type="text" id="regName" placeholder="Namn" required>
       <input type="email" id="regEmail" placeholder="E-post" required>
-      <input type="password" id="regPassword" placeholder="Lösenord" required>
-      <button type="submit" style="background:#28a745;">Registrera</button>
+      <input type="password" id="regPassword" placeholder="LÃ¶senord" required>
+      <button id="registerSubmit" type="submit">Registrera</button>
       <p id="registerMsg" class="notice"></p>
     </form>
 
   </div>
-</main>
+</div>
 
 <footer>
-  © 2025 Kaytas
+  Â© 2025 Kaytas
 </footer>
 
 <script>
-
-// Redirect-parameter
+/* Redirect goal */
 const params = new URLSearchParams(window.location.search);
 const redirectUrl = params.get("redirect") || "/dashboard.html";
 
-// Tabs
+/* Elements */
 const loginTab = document.getElementById('loginTab');
 const registerTab = document.getElementById('registerTab');
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
 
-loginTab.onclick = function() {
-  loginForm.style.display = "block";
+/* Tabs logic */
+loginTab.onclick = () => {
+  loginTab.classList.add("tab-active");
+  registerTab.classList.remove("tab-active");
+  loginForm.style.display = "flex";
   registerForm.style.display = "none";
 };
 
-registerTab.onclick = function() {
+registerTab.onclick = () => {
+  registerTab.classList.add("tab-active");
+  loginTab.classList.remove("tab-active");
   loginForm.style.display = "none";
-  registerForm.style.display = "block";
+  registerForm.style.display = "flex";
 };
 
-document.getElementById('backHome').onclick = function() {
+document.getElementById('backHome').onclick = () => {
   window.location.href = '/';
 };
 
-// LOGIN
-loginForm.addEventListener('submit', async function(e) {
+/* LOGIN */
+loginForm.addEventListener('submit', async e => {
   e.preventDefault();
 
   const email = loginEmail.value.trim();
@@ -91,24 +215,21 @@ loginForm.addEventListener('submit', async function(e) {
     const data = await res.json();
 
     if (!res.ok) {
-      loginMsg.textContent = data.error || "Fel uppgifter";
+      loginMsg.textContent = data.error || "Fel uppgifter.";
       return;
     }
 
     localStorage.setItem("token", data.token);
     loginMsg.textContent = "Inloggning lyckades!";
+    setTimeout(() => window.location.href = redirectUrl, 500);
 
-    setTimeout(function() {
-      window.location.href = redirectUrl;
-    }, 600);
-
-  } catch (err) {
+  } catch {
     loginMsg.textContent = "Serverfel.";
   }
 });
 
-// REGISTER
-registerForm.addEventListener('submit', async function(e) {
+/* REGISTER */
+registerForm.addEventListener('submit', async e => {
   e.preventDefault();
 
   const name = regName.value.trim();
@@ -125,22 +246,18 @@ registerForm.addEventListener('submit', async function(e) {
     const data = await res.json();
 
     if (!res.ok) {
-      registerMsg.textContent = data.error || "Fel vid registrering";
+      registerMsg.textContent = data.error || "Fel vid registrering.";
       return;
     }
 
     localStorage.setItem("token", data.token);
     registerMsg.textContent = "Registrering lyckades!";
+    setTimeout(() => window.location.href = redirectUrl, 500);
 
-    setTimeout(function() {
-      window.location.href = redirectUrl;
-    }, 600);
-
-  } catch (err) {
+  } catch {
     registerMsg.textContent = "Serverfel.";
   }
 });
-
 </script>
 
 </body>
