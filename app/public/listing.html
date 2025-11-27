@@ -6,6 +6,10 @@
   <title>Annons – Kaytas</title>
   <link rel="stylesheet" href="style.css">
 
+  <!-- MAP -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
     body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
     header { background:#fff; padding:12px 18px; box-shadow:0 2px 6px rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; }
@@ -36,15 +40,25 @@
     .btn-primary { background:#1976d2; color:#fff; }
     .btn-fav { background:#f0c14b; }
 
+    /* MAP BOX */
+    #map {
+      width: 100%;
+      height: 260px;
+      border-radius: 8px;
+      margin-top: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
     @media (max-width:900px) {
       main { flex-direction:column; }
       .gallery img { height:320px; }
+      #map { height:200px; }
     }
   </style>
 </head>
 
 <body>
-    <div class="container">
+<div class="container">
 
 <header>
   <div class="logo" onclick="location.href='/'">Kaytas</div>
@@ -80,6 +94,10 @@
         <strong>Beskrivning</strong>
         <p id="description"></p>
       </div>
+
+      <!-- MAP SECTION -->
+      <div id="map"></div>
+
     </div>
 
     <div>
@@ -97,7 +115,6 @@
 </main>
 
 <script>
-/* Redirect to login if needed */
 function requireLogin(redirectUrl) {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -107,13 +124,12 @@ function requireLogin(redirectUrl) {
   return true;
 }
 
-/* DOM helpers */
 function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text || "";
 }
 
-/* Gallery state */
+/* GALLERY */
 let images = [];
 let currentIndex = 0;
 
@@ -128,26 +144,27 @@ function showImage(i) {
   currentIndex = i;
   mainImage.src = images[currentIndex];
 
-  const ts = thumbs.querySelectorAll("img");
-  ts.forEach((t, idx) => t.classList.toggle("active", idx === currentIndex));
+  thumbs.querySelectorAll("img").forEach((t, idx) =>
+    t.classList.toggle("active", idx === currentIndex)
+  );
 }
 
 document.getElementById("prevBtn").onclick = () => showImage(currentIndex - 1);
 document.getElementById("nextBtn").onclick = () => showImage(currentIndex + 1);
 
-/* Touch swipe */
 let startX = 0;
-mainImage.addEventListener("touchstart", e => {
-  startX = e.changedTouches[0].screenX;
-});
+mainImage.addEventListener("touchstart", e => startX = e.changedTouches[0].screenX);
 mainImage.addEventListener("touchend", e => {
-  const endX = e.changedTouches[0].screenX;
-  const diff = endX - startX;
+  const diff = e.changedTouches[0].screenX - startX;
   if (diff > 40) showImage(currentIndex - 1);
   if (diff < -40) showImage(currentIndex + 1);
 });
 
-/* Load listing data */
+/* MAP VARIABLES */
+let map;
+let marker;
+
+/* Load listing */
 let listingData = null;
 
 async function loadListing() {
@@ -171,20 +188,15 @@ async function loadListing() {
     setText("listingId", listingData._id);
     setText("createdAt", listingData.createdAt ? new Date(listingData.createdAt).toLocaleString() : "");
 
-    images = Array.isArray(listingData.images) && listingData.images.length > 0 
-      ? listingData.images 
-      : ["/uploads/default.jpg"];
-
-    thumbs.innerHTML = "";
-    images.forEach((src, i) => {
-      const t = document.createElement("img");
-      t.src = src;
-      t.onclick = () => showImage(i);
-      thumbs.appendChild(t);
-    });
-
+    /* Gallery images */
+    images = listingData.images?.length ? listingData.images : ["/uploads/default.jpg"];
+    thumbs.innerHTML = images.map((src,i)=>`<img src="${src}" onclick="showImage(${i})">`).join("");
     showImage(0);
+
     updateFavoriteButton();
+
+    /* INIT MAP */
+    loadMap();
 
   } catch {
     alert("Kunde inte hämta annonsen.");
@@ -192,10 +204,25 @@ async function loadListing() {
   }
 }
 
-/* Favorite logic */
-function getToken() {
-  return localStorage.getItem("token");
+/* MAP LOGIC */
+function loadMap() {
+  if (!listingData.location || !listingData.location.coordinates) return;
+
+  const [lng, lat] = listingData.location.coordinates;
+
+  map = L.map("map").setView([lat, lng], 14);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19
+  }).addTo(map);
+
+  marker = L.marker([lat, lng]).addTo(map);
+
+  marker.bindPopup(listingData.address || "Location").openPopup();
 }
+
+/* FAVORITES */
+function getToken() { return localStorage.getItem("token"); }
 
 async function updateFavoriteButton() {
   const btn = document.getElementById("favoriteBtn");
@@ -209,10 +236,8 @@ async function updateFavoriteButton() {
 
   try {
     const res = await fetch("/api/favorites", {
-      headers: { Authorization: "Bearer " + token }
+      headers: { Authorization:"Bearer " + token }
     });
-
-    if (!res.ok) throw new Error();
 
     const favs = await res.json();
     const isFav = favs.some(f => f._id === listingData._id);
@@ -222,7 +247,6 @@ async function updateFavoriteButton() {
 
   } catch {
     btn.textContent = "Add to favorites";
-    btn.dataset.fav = "no";
   }
 }
 
@@ -232,25 +256,16 @@ document.getElementById("favoriteBtn").onclick = async function(e) {
 
   const btn = this;
   const token = getToken();
-  const listingId = listingData._id;
   const isFav = btn.dataset.fav === "yes";
 
-  const url = "/api/favorites/" + listingId;
-  const method = isFav ? "DELETE" : "POST";
+  const res = await fetch("/api/favorites/" + listingData._id, {
+    method: isFav ? "DELETE" : "POST",
+    headers: { Authorization:"Bearer " + token }
+  });
 
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: { Authorization: "Bearer " + token }
-    });
-
-    if (res.ok) {
-      btn.textContent = isFav ? "Add to favorites" : "Remove favorite";
-      btn.dataset.fav = isFav ? "no" : "yes";
-    }
-
-  } catch {
-    alert("Kunde inte ändra favorit.");
+  if (res.ok) {
+    btn.textContent = isFav ? "Add to favorites" : "Remove favorite";
+    btn.dataset.fav = isFav ? "no" : "yes";
   }
 };
 
@@ -260,11 +275,9 @@ document.getElementById("contactBtn").onclick = function() {
   location.href = "/chat.html?adId=" + encodeURIComponent(listingData._id);
 };
 
-/* Init */
 loadListing();
-
 </script>
 
-    </div> <!-- end container -->
+</div>
 </body>
 </html>
